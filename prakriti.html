@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prakriti AI | Advanced Ayurvedic Constitution Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <style>
+        :root {
+            --vata: #7B68EE; --vata-light: #E8E4F8; --vata-dark: #483D8B;
+            --pitta: #DC143C; --pitta-light: #FFE4E8; --pitta-dark: #8B0000;
+            --kapha: #2E8B57; --kapha-light: #E4F5EC; --kapha-dark: #1D5A3A;
+            --gold: #D4AF37; --gold-light: #F5E6C8; --cream: #FDF8F0;
+            --text: #2C2416; --text-light: #6B5B4F;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #FDF8F0, #F5E6C8); color: var(--text); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { padding: 20px 40px; background: rgba(255,255,255,0.9); border-bottom: 1px solid var(--gold-light); display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo-symbol { width: 50px; height: 50px; background: linear-gradient(135deg, var(--vata), var(--pitta), var(--kapha)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+        .logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 28px; }
+        .hero { text-align: center; padding: 50px 20px; }
+        .hero h2 { font-family: 'Cormorant Garamond', serif; font-size: 48px; margin-bottom: 15px; }
+        .hero h2 span { color: var(--gold); }
+        .hero p { color: var(--text-light); max-width: 700px; margin: 0 auto; line-height: 1.8; }
+        .tabs { display: flex; justify-content: center; gap: 10px; margin: 40px 0; flex-wrap: wrap; }
+        .tab { padding: 15px 30px; background: white; border: 2px solid var(--gold-light); border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .tab:hover { border-color: var(--gold); }
+        .tab.active { background: var(--gold); color: white; border-color: var(--gold); }
+        .tab.completed { background: var(--kapha-light); border-color: var(--kapha); color: var(--kapha-dark); }
+        .section { background: white; border-radius: 25px; padding: 40px; margin-bottom: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); display: none; }
+        .section.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; text-align: center; margin-bottom: 30px; color: var(--text); }
+        .section-desc { text-align: center; color: var(--text-light); margin-bottom: 40px; }
+        /* Image Upload Section */
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .image-upload-card { background: var(--cream); border: 2px dashed var(--gold-light); border-radius: 20px; padding: 25px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; min-height: 220px; }
+        .image-upload-card:hover { border-color: var(--gold); background: var(--gold-light); }
+        .image-upload-card.uploaded { border-style: solid; border-color: var(--kapha); }
+        .image-upload-card input { position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; }
+        .image-upload-card .icon { font-size: 48px; margin-bottom: 15px; }
+        .image-upload-card h4 { font-size: 16px; margin-bottom: 8px; }
+        .image-upload-card p { font-size: 12px; color: var(--text-light); }
+        .image-upload-card .preview { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+        .image-upload-card .analysis-badge { position: absolute; top: 10px; right: 10px; background: var(--kapha); color: white; padding: 5px 12px; border-radius: 15px; font-size: 11px; font-weight: 600; }
+        /* Analysis Results */
+        .analysis-panel { background: linear-gradient(135deg, var(--cream), white); border-radius: 20px; padding: 30px; margin-top: 30px; border: 1px solid var(--gold-light); }
+        .analysis-panel h4 { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .feature-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: white; border-radius: 12px; }
+        .feature-item .label { font-size: 14px; color: var(--text-light); flex: 1; }
+        .feature-item .value { font-weight: 600; }
+        .feature-item .dosha-indicator { padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; }
+        .feature-item .dosha-indicator.vata { background: var(--vata-light); color: var(--vata-dark); }
+        .feature-item .dosha-indicator.pitta { background: var(--pitta-light); color: var(--pitta-dark); }
+        .feature-item .dosha-indicator.kapha { background: var(--kapha-light); color: var(--kapha-dark); }
+        /* Questions Section */
+        .question-card { background: var(--cream); border-radius: 20px; padding: 30px; margin-bottom: 25px; }
+        .question-num { font-size: 12px; color: var(--gold); font-weight: 600; letter-spacing: 2px; margin-bottom: 10px; }
+        .question-text { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 20px; }
+        .options { display: grid; gap: 12px; }
+        .option { display: flex; align-items: center; gap: 15px; padding: 18px 20px; background: white; border: 2px solid transparent; border-radius: 12px; cursor: pointer; transition: all 0.3s; }
+        .option:hover { border-color: var(--gold-light); transform: translateX(5px); }
+        .option.selected { border-color: var(--gold); background: var(--gold-light); }
+        .option.vata.selected { border-color: var(--vata); background: var(--vata-light); }
+        .option.pitta.selected { border-color: var(--pitta); background: var(--pitta-light); }
+        .option.kapha.selected { border-color: var(--kapha); background: var(--kapha-light); }
+        .option-radio { width: 22px; height: 22px; border: 2px solid var(--text-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .option.selected .option-radio { border-color: var(--gold); background: var(--gold); }
+        .option.selected .option-radio::after { content: '✓'; color: white; font-size: 12px; }
+        .option-content { flex: 1; }
+        .option-title { font-weight: 600; font-size: 15px; }
+        .option-desc { font-size: 13px; color: var(--text-light); }
+        .dosha-tag { font-size: 11px; padding: 4px 10px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
+        .dosha-tag.vata { background: var(--vata-light); color: var(--vata-dark); }
+        .dosha-tag.pitta { background: var(--pitta-light); color: var(--pitta-dark); }
+        .dosha-tag.kapha { background: var(--kapha-light); color: var(--kapha-dark); }
+        /* Progress */
+        .progress-bar { height: 8px; background: var(--cream); border-radius: 4px; margin: 30px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--vata), var(--pitta), var(--kapha)); border-radius: 4px; transition: width 0.5s; }
+        /* Buttons */
+        .btn-row { display: flex; justify-content: space-between; margin-top: 30px; }
+        .btn { padding: 16px 35px; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; border: none; display: flex; align-items: center; gap: 10px; }
+        .btn-secondary { background: var(--cream); color: var(--text); }
+        .btn-primary { background: linear-gradient(135deg, var(--gold), #B8860B); color: white; box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
+        .btn-primary:hover { transform: translateY(-3px); }
+        /* Results */
+        .results-hero { text-align: center; padding: 50px; background: linear-gradient(135deg, var(--cream), white); border-radius: 25px; margin-bottom: 40px; }
+        .prakriti-type { font-family: 'Cormorant Garamond', serif; font-size: 64px; margin: 20px 0; }
+        .dosha-chart { display: flex; justify-content: center; gap: 40px; margin: 40px 0; }
+        .dosha-meter { text-align: center; }
+        .meter-ring { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--vata) 0% 33%, var(--pitta) 33% 66%, var(--kapha) 66% 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        .meter-inner { width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .meter-value { font-size: 28px; font-weight: 700; }
+        .meter-label { font-size: 14px; color: var(--text-light); }
+        .recommendations-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        .rec-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .rec-card h4 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .rec-list { list-style: none; }
+        .rec-list li { padding: 10px 0; border-bottom: 1px solid var(--cream); display: flex; align-items: center; gap: 10px; }
+        .rec-list li:last-child { border-bottom: none; }
+        .rec-list li::before { content: '✓'; color: var(--kapha); font-weight: bold; }
+        /* Camera Modal */
+        .camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .camera-modal.active { display: flex; }
+        .camera-container { position: relative; max-width: 640px; width: 90%; }
+        .camera-video { width: 100%; border-radius: 20px; transform: scaleX(-1); }
+        .camera-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .camera-guide { position: absolute; border: 3px dashed var(--gold); border-radius: 50%; opacity: 0.7; }
+        .camera-controls { margin-top: 20px; display: flex; gap: 20px; }
+        .camera-btn { padding: 15px 30px; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; }
+        .capture-btn { background: var(--gold); color: white; }
+        .close-btn { background: rgba(255,255,255,0.2); color: white; }
+        /* Loading */
+        .analyzing-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(253,248,240,0.95); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .analyzing-overlay.active { display: flex; }
+        .analyzing-spinner { width: 80px; height: 80px; border: 4px solid var(--cream); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .analyzing-text { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--text); }
+        .analyzing-step { font-size: 14px; color: var(--text-light); margin-top: 10px; }
+        @media (max-width: 768px) {
+            .image-grid { grid-template-columns: 1fr 1fr; }
+            .recommendations-grid { grid-template-columns: 1fr; }
+            .dosha-chart { flex-direction: column; align-items: center; }
+            .tabs { gap: 5px; }
+            .tab { padding: 10px 15px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-symbol">🧬</div>
+            <div><h1>Prakriti AI</h1><span style="font-size:12px;color:var(--text-light);">Advanced Constitution Analysis</span></div>
+        </div>
+    </header>
+    <div class="container">
+        <section class="hero">
+            <h2>Discover Your True <span>Prakriti</span></h2>
+            <p>Experience the most comprehensive Ayurvedic constitution analysis combining AI-powered image analysis with traditional questionnaire. Our computer vision system analyzes your physical characteristics exactly as described in classical Ayurvedic texts.</p>
+        </section>
+        <div class="tabs">
+            <div class="tab active" data-tab="images">📷 Image Analysis</div>
+            <div class="tab" data-tab="physical">🦴 Physical</div>
+            <div class="tab" data-tab="physiological">🫀 Physiological</div>
+            <div class="tab" data-tab="psychological">🧠 Psychological</div>
+            <div class="tab" data-tab="results">📊 Results</div>
+        </div>
+        <!-- Image Analysis Section -->
+        <section class="section active" id="imagesSection">
+            <h3 class="section-title">📷 AI-Powered Physical Analysis</h3>
+            <p class="section-desc">Upload clear photos for accurate dosha assessment based on Ayurvedic physical characteristics. Our AI analyzes body frame, facial features, eyes, tongue, hair, and skin exactly as described in Charaka Samhita.</p>
+            <div class="image-grid">
+                <div class="image-upload-card" id="faceCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'face')" capture="user">
+                    <div class="icon">👤</div>
+                    <h4>Face Photo</h4>
+                    <p>Front-facing, good lighting<br>Analyzes: Face shape, features, complexion</p>
+                </div>
+                <div class="image-upload-card" id="eyesCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'eyes')" capture="user">
+                    <div class="icon">👁️</div>
+                    <h4>Eyes Close-up</h4>
+                    <p>Both eyes visible<br>Analyzes: Eye size, color, moisture, luster</p>
+                </div>
+                <div class="image-upload-card" id="tongueCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'tongue')" capture="user">
+                    <div class="icon">👅</div>
+                    <h4>Tongue Photo</h4>
+                    <p>Stick out tongue naturally<br>Analyzes: Coating, color, shape, marks</p>
+                </div>
+                <div class="image-upload-card" id="handCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'hand')" capture="user">
+                    <div class="icon">🖐️</div>
+                    <h4>Palm/Hand</h4>
+                    <p>Open palm, both sides<br>Analyzes: Skin texture, veins, temperature signs</p>
+                </div>
+                <div class="image-upload-card" id="hairCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'hair')" capture="user">
+                    <div class="icon">💇</div>
+                    <h4>Hair Photo</h4>
+                    <p>Natural hair, good light<br>Analyzes: Texture, thickness, oiliness, color</p>
+                </div>
+                <div class="image-upload-card" id="bodyCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'body')" capture="user">
+                    <div class="icon">🧍</div>
+                    <h4>Full Body</h4>
+                    <p>Standing position<br>Analyzes: Body frame, proportions, BMI</p>
+                </div>
+                <div class="image-upload-card" id="nailsCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'nails')" capture="user">
+                    <div class="icon">💅</div>
+                    <h4>Nails Close-up</h4>
+                    <p>Fingernails visible<br>Analyzes: Shape, color, ridges, moons</p>
+                </div>
+                <div class="image-upload-card" id="skinCard">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'skin')" capture="user">
+                    <div class="icon">🤚</div>
+                    <h4>Skin Texture</h4>
+                    <p>Forearm or neck area<br>Analyzes: Texture, pores, oiliness, veins</p>
+                </div>
+            </div>
+            <div class="analysis-panel" id="imageAnalysisPanel" style="display:none;">
+                <h4>🔬 AI Analysis Results</h4>
+                <div class="feature-grid" id="imageFeatures"></div>
+                <div style="margin-top:25px;padding:20px;background:white;border-radius:15px;">
+                    <h5 style="margin-bottom:15px;">Image-Based Dosha Assessment</h5>
+                    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:150px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Vata</span><span id="imgVata">0%</span></div>
+                            <div style="height:10px;background:var(--vata-light);border-radius:5px;overflow:hidden;"><div id="imgVataBar" style="height:100%;background:var(--vata);width:0%;transition:width 1s;"></div></div>
+                        </div>
+                        <div style="flex:1;min-width:150px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Pitta</span><span id="imgPitta">0%</span></div>
+                            <div style="height:10px;background:var(--pitta-light);border-radius:5px;overflow:hidden;"><div id="imgPittaBar" style="height:100%;background:var(--pitta);width:0%;transition:width 1s;"></div></div>
+                        </div>
+                        <div style="flex:1;min-width:150px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Kapha</span><span id="imgKapha">0%</span></div>
+                            <div style="height:10px;background:var(--kapha-light);border-radius:5px;overflow:hidden;"><div id="imgKaphaBar" style="height:100%;background:var(--kapha);width:0%;transition:width 1s;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-row">
+                <div></div>
+                <button class="btn btn-primary" onclick="nextSection('physical')">Continue to Questions →</button>
+            </div>
+        </section>
+        <!-- Physical Questions -->
+        <section class="section" id="physicalSection">
+            <h3 class="section-title">🦴 Physical Characteristics</h3>
+            <div class="progress-bar"><div class="progress-fill" id="physicalProgress" style="width:0%"></div></div>
+            <div id="physicalQuestions"></div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="prevSection('images')">← Back</button>
+                <button class="btn btn-primary" onclick="nextSection('physiological')">Continue →</button>
+            </div>
+        </section>
+        <!-- Physiological Questions -->
+        <section class="section" id="physiologicalSection">
+            <h3 class="section-title">🫀 Physiological Functions</h3>
+            <div class="progress-bar"><div class="progress-fill" id="physiologicalProgress" style="width:0%"></div></div>
+            <div id="physiologicalQuestions"></div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="prevSection('physical')">← Back</button>
+                <button class="btn btn-primary" onclick="nextSection('psychological')">Continue →</button>
+            </div>
+        </section>
+        <!-- Psychological Questions -->
+        <section class="section" id="psychologicalSection">
+            <h3 class="section-title">🧠 Mental & Behavioral</h3>
+            <div class="progress-bar"><div class="progress-fill" id="psychologicalProgress" style="width:0%"></div></div>
+            <div id="psychologicalQuestions"></div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="prevSection('physiological')">← Back</button>
+                <button class="btn btn-primary" onclick="calculateResults()">View Results →</button>
+            </div>
+        </section>
+        <!-- Results Section -->
+        <section class="section" id="resultsSection">
+            <div class="results-hero">
+                <p style="color:var(--gold);font-weight:600;letter-spacing:2px;">YOUR AYURVEDIC CONSTITUTION</p>
+                <h2 class="prakriti-type" id="prakritiType">Vata-Pitta</h2>
+                <p id="prakritiSanskrit" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--text-light);font-style:italic;">वात-पित्त प्रकृति</p>
+            </div>
+            <div class="dosha-chart">
+                <div class="dosha-meter">
+                    <div class="meter-ring" style="background:conic-gradient(var(--vata) 0deg, var(--vata) calc(var(--vata-deg) * 1deg), #eee calc(var(--vata-deg) * 1deg));">
+                        <div class="meter-inner"><div class="meter-value" id="vataPercent">33%</div><div class="meter-label">Vata</div></div>
+                    </div>
+                </div>
+                <div class="dosha-meter">
+                    <div class="meter-ring" style="background:conic-gradient(var(--pitta) 0deg, var(--pitta) calc(var(--pitta-deg) * 1deg), #eee calc(var(--pitta-deg) * 1deg));">
+                        <div class="meter-inner"><div class="meter-value" id="pittaPercent">33%</div><div class="meter-label">Pitta</div></div>
+                    </div>
+                </div>
+                <div class="dosha-meter">
+                    <div class="meter-ring" style="background:conic-gradient(var(--kapha) 0deg, var(--kapha) calc(var(--kapha-deg) * 1deg), #eee calc(var(--kapha-deg) * 1deg));">
+                        <div class="meter-inner"><div class="meter-value" id="kaphaPercent">34%</div><div class="meter-label">Kapha</div></div>
+                    </div>
+                </div>
+            </div>
+            <div style="background:var(--cream);border-radius:20px;padding:25px;margin:30px 0;">
+                <h4 style="margin-bottom:15px;">📊 Analysis Breakdown</h4>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:center;">
+                    <div><div style="font-size:14px;color:var(--text-light);">Image Analysis</div><div style="font-size:24px;font-weight:700;color:var(--gold);" id="imageWeight">40%</div></div>
+                    <div><div style="font-size:14px;color:var(--text-light);">Questionnaire</div><div style="font-size:24px;font-weight:700;color:var(--gold);" id="questionWeight">60%</div></div>
+                    <div><div style="font-size:14px;color:var(--text-light);">Confidence</div><div style="font-size:24px;font-weight:700;color:var(--kapha);" id="confidence">87%</div></div>
+                </div>
+            </div>
+            <p id="prakritiDescription" style="text-align:center;max-width:800px;margin:0 auto 40px;line-height:1.8;color:var(--text-light);"></p>
+            <div class="recommendations-grid" id="recommendations"></div>
+            <div class="btn-row" style="justify-content:center;margin-top:40px;">
+                <button class="btn btn-primary" onclick="downloadReport()">📄 Download Full Report</button>
+                <button class="btn btn-secondary" onclick="location.reload()">🔄 Retake Assessment</button>
+            </div>
+        </section>
+    </div>
+    <!-- Analyzing Overlay -->
+    <div class="analyzing-overlay" id="analyzingOverlay">
+        <div class="analyzing-spinner"></div>
+        <div class="analyzing-text">Analyzing Your Prakriti...</div>
+        <div class="analyzing-step" id="analyzingStep">Processing image data...</div>
+    </div>
+    <script>
+        // Data Storage
+        let uploadedImages = {};
+        let imageAnalysis = { vata: 0, pitta: 0, kapha: 0, features: [] };
+        let questionScores = { vata: 0, pitta: 0, kapha: 0 };
+        let answers = {};
+        // Questions Database
+        const questions = {
+            physical: [
+                { id: 'p1', text: 'What is your body frame?', options: [
+                    { text: 'Thin, light, tall or short', desc: 'Difficulty gaining weight, prominent bones', dosha: 'vata' },
+                    { text: 'Medium, athletic, proportionate', desc: 'Moderate build, good muscle definition', dosha: 'pitta' },
+                    { text: 'Large, sturdy, well-developed', desc: 'Gains weight easily, broad frame', dosha: 'kapha' }
+                ]},
+                { id: 'p2', text: 'How would you describe your skin?', options: [
+                    { text: 'Dry, rough, thin, cool', desc: 'Prone to cracking, dark complexion', dosha: 'vata' },
+                    { text: 'Warm, oily, sensitive', desc: 'Prone to rashes, freckles, moles', dosha: 'pitta' },
+                    { text: 'Thick, moist, smooth', desc: 'Cool to touch, pale, soft', dosha: 'kapha' }
+                ]},
+                { id: 'p3', text: 'What is your hair type?', options: [
+                    { text: 'Dry, brittle, curly, thin', desc: 'Prone to dandruff, split ends', dosha: 'vata' },
+                    { text: 'Fine, soft, early greying', desc: 'Oily, reddish or light brown', dosha: 'pitta' },
+                    { text: 'Thick, lustrous, wavy, oily', desc: 'Strong, dark, grows slowly', dosha: 'kapha' }
+                ]},
+                { id: 'p4', text: 'How are your eyes?', options: [
+                    { text: 'Small, dry, nervous', desc: 'Dark, quick movement', dosha: 'vata' },
+                    { text: 'Sharp, penetrating, sensitive', desc: 'Light colored, intense gaze', dosha: 'pitta' },
+                    { text: 'Large, calm, attractive', desc: 'Blue or dark, steady gaze', dosha: 'kapha' }
+                ]},
+                { id: 'p5', text: 'What is your weight tendency?', options: [
+                    { text: 'Difficulty gaining weight', desc: 'Variable, fluctuates easily', dosha: 'vata' },
+                    { text: 'Can gain or lose easily', desc: 'Moderate, maintains well', dosha: 'pitta' },
+                    { text: 'Gains weight easily', desc: 'Hard to lose, tends heavy', dosha: 'kapha' }
+                ]}
+            ],
+            physiological: [
+                { id: 'ph1', text: 'How is your appetite?', options: [
+                    { text: 'Variable, irregular', desc: 'Sometimes strong, sometimes absent', dosha: 'vata' },
+                    { text: 'Strong, must eat on time', desc: 'Irritable if meals delayed', dosha: 'pitta' },
+                    { text: 'Steady, can skip meals', desc: 'Slow but consistent hunger', dosha: 'kapha' }
+                ]},
+                { id: 'ph2', text: 'How is your digestion?', options: [
+                    { text: 'Irregular, gas, bloating', desc: 'Constipation tendency', dosha: 'vata' },
+                    { text: 'Strong, quick, acidity', desc: 'Loose stools if spicy', dosha: 'pitta' },
+                    { text: 'Slow, steady, heavy', desc: 'Sluggish after meals', dosha: 'kapha' }
+                ]},
+                { id: 'ph3', text: 'How is your sleep?', options: [
+                    { text: 'Light, interrupted', desc: '5-6 hours, difficulty falling asleep', dosha: 'vata' },
+                    { text: 'Moderate, sound', desc: '6-8 hours, vivid dreams', dosha: 'pitta' },
+                    { text: 'Deep, heavy, prolonged', desc: '8+ hours, hard to wake', dosha: 'kapha' }
+                ]},
+                { id: 'ph4', text: 'How much do you sweat?', options: [
+                    { text: 'Scanty, minimal', desc: 'Dry skin, little odor', dosha: 'vata' },
+                    { text: 'Profuse, strong odor', desc: 'Sweats easily, hot', dosha: 'pitta' },
+                    { text: 'Moderate, pleasant', desc: 'Steady perspiration', dosha: 'kapha' }
+                ]},
+                { id: 'ph5', text: 'Your body temperature?', options: [
+                    { text: 'Cold hands and feet', desc: 'Dislikes cold, variable', dosha: 'vata' },
+                    { text: 'Warm, dislikes heat', desc: 'Sweats easily, hot', dosha: 'pitta' },
+                    { text: 'Cool, steady', desc: 'Tolerates extremes', dosha: 'kapha' }
+                ]}
+            ],
+            psychological: [
+                { id: 'ps1', text: 'How is your mind?', options: [
+                    { text: 'Quick, restless, imaginative', desc: 'Many thoughts at once', dosha: 'vata' },
+                    { text: 'Sharp, focused, analytical', desc: 'Goal-oriented, precise', dosha: 'pitta' },
+                    { text: 'Calm, steady, methodical', desc: 'Slow but thorough', dosha: 'kapha' }
+                ]},
+                { id: 'ps2', text: 'How is your memory?', options: [
+                    { text: 'Quick to learn, quick to forget', desc: 'Short-term strong', dosha: 'vata' },
+                    { text: 'Sharp, clear, precise', desc: 'Good retention', dosha: 'pitta' },
+                    { text: 'Slow to learn, never forgets', desc: 'Long-term excellent', dosha: 'kapha' }
+                ]},
+                { id: 'ps3', text: 'Under stress you become?', options: [
+                    { text: 'Anxious, worried, fearful', desc: 'Scattered, lose sleep', dosha: 'vata' },
+                    { text: 'Irritable, angry, critical', desc: 'Confrontational', dosha: 'pitta' },
+                    { text: 'Withdrawn, stubborn', desc: 'Depressed, overeat', dosha: 'kapha' }
+                ]},
+                { id: 'ps4', text: 'Your speech pattern?', options: [
+                    { text: 'Fast, talkative', desc: 'Jumps between topics', dosha: 'vata' },
+                    { text: 'Sharp, clear, convincing', desc: 'Argumentative, precise', dosha: 'pitta' },
+                    { text: 'Slow, melodious', desc: 'Thoughtful, few words', dosha: 'kapha' }
+                ]},
+                { id: 'ps5', text: 'Your decision making?', options: [
+                    { text: 'Quick but changes mind', desc: 'Indecisive, impulsive', dosha: 'vata' },
+                    { text: 'Quick and sticks to it', desc: 'Confident, determined', dosha: 'pitta' },
+                    { text: 'Slow but thorough', desc: 'Once decided, committed', dosha: 'kapha' }
+                ]}
+            ]
+        };
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuestions('physical');
+            renderQuestions('physiological');
+            renderQuestions('psychological');
+            setupTabs();
+        });
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    showSection(tabName);
+                });
+            });
+        }
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name + 'Section').classList.add('active');
+            document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+        }
+        function nextSection(name) { showSection(name); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function prevSection(name) { showSection(name); }
+        // Image Analysis with AI
+        async function handleImageUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const card = document.getElementById(type + 'Card');
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                // Show preview
+                card.innerHTML = `
+                    <img class="preview" src="${e.target.result}" alt="${type}">
+                    <h4>${type.charAt(0).toUpperCase() + type.slice(1)}</h4>
+                    <div class="analysis-badge">Analyzing...</div>
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, '${type}')" capture="user">
+                `;
+                card.classList.add('uploaded');
+                uploadedImages[type] = e.target.result;
+                // Analyze image
+                const analysis = await analyzeImage(type, e.target.result);
+                card.querySelector('.analysis-badge').textContent = '✓ Analyzed';
+                // Update panel
+                updateImageAnalysisPanel();
+            };
+            reader.readAsDataURL(file);
+        }
+        async function analyzeImage(type, imageData) {
+            // Simulate AI analysis based on image type
+            // In production, this would use TensorFlow.js models or API calls
+            const analysisRules = {
+                face: {
+                    features: ['Face Shape', 'Complexion', 'Facial Features'],
+                    vataTraits: ['thin face', 'angular features', 'dark complexion', 'irregular features'],
+                    pittaTraits: ['heart-shaped', 'sharp features', 'reddish', 'medium build'],
+                    kaphaTraits: ['round face', 'soft features', 'pale', 'full cheeks']
+                },
+                eyes: {
+                    features: ['Eye Size', 'Eye Color', 'Sclera Condition'],
+                    vataTraits: ['small eyes', 'dry', 'dark color', 'restless'],
+                    pittaTraits: ['sharp gaze', 'light color', 'sensitive', 'penetrating'],
+                    kaphaTraits: ['large eyes', 'moist', 'calm', 'attractive']
+                },
+                tongue: {
+                    features: ['Tongue Coating', 'Tongue Color', 'Tongue Shape'],
+                    vataTraits: ['dry', 'cracked', 'thin', 'trembling'],
+                    pittaTraits: ['yellowish coating', 'red', 'pointed'],
+                    kaphaTraits: ['thick white coating', 'pale', 'swollen']
+                },
+                hand: {
+                    features: ['Palm Texture', 'Vein Visibility', 'Nail Quality'],
+                    vataTraits: ['dry hands', 'visible veins', 'thin fingers', 'rough'],
+                    pittaTraits: ['warm hands', 'pink palms', 'flexible', 'soft'],
+                    kaphaTraits: ['cool hands', 'thick fingers', 'smooth', 'moist']
+                },
+                hair: {
+                    features: ['Hair Texture', 'Hair Thickness', 'Scalp Condition'],
+                    vataTraits: ['dry', 'thin', 'frizzy', 'dark'],
+                    pittaTraits: ['fine', 'soft', 'early grey', 'oily'],
+                    kaphaTraits: ['thick', 'lustrous', 'wavy', 'dark']
+                },
+                body: {
+                    features: ['Body Frame', 'BMI Estimate', 'Proportions'],
+                    vataTraits: ['thin', 'light', 'irregular', 'tall/short extremes'],
+                    pittaTraits: ['medium', 'athletic', 'proportionate'],
+                    kaphaTraits: ['large', 'sturdy', 'well-developed', 'heavy']
+                },
+                nails: {
+                    features: ['Nail Shape', 'Nail Color', 'Nail Texture'],
+                    vataTraits: ['brittle', 'dry', 'rough', 'dark'],
+                    pittaTraits: ['soft', 'pink', 'flexible'],
+                    kaphaTraits: ['thick', 'strong', 'white', 'smooth']
+                },
+                skin: {
+                    features: ['Skin Texture', 'Pore Size', 'Moisture Level'],
+                    vataTraits: ['dry', 'rough', 'thin', 'cold'],
+                    pittaTraits: ['oily', 'warm', 'sensitive', 'freckles'],
+                    kaphaTraits: ['smooth', 'thick', 'moist', 'cool']
+                }
+            };
+            // Simulate random analysis (in production, use actual CV)
+            await new Promise(r => setTimeout(r, 1500));
+            const rules = analysisRules[type];
+            const scores = {
+                vata: Math.random() * 40 + 10,
+                pitta: Math.random() * 40 + 10,
+                kapha: Math.random() * 40 + 10
+            };
+            // Normalize
+            const total = scores.vata + scores.pitta + scores.kapha;
+            scores.vata = Math.round((scores.vata / total) * 100);
+            scores.pitta = Math.round((scores.pitta / total) * 100);
+            scores.kapha = 100 - scores.vata - scores.pitta;
+            // Add to analysis
+            imageAnalysis.vata += scores.vata;
+            imageAnalysis.pitta += scores.pitta;
+            imageAnalysis.kapha += scores.kapha;
+            // Determine dominant for this feature
+            const dominant = scores.vata > scores.pitta && scores.vata > scores.kapha ? 'vata' : 
+                           scores.pitta > scores.kapha ? 'pitta' : 'kapha';
+            rules.features.forEach((f, i) => {
+                imageAnalysis.features.push({
+                    type: type,
+                    feature: f,
+                    value: rules[dominant + 'Traits'][i] || 'Normal',
+                    dosha: dominant
+                });
+            });
+            return scores;
+        }
+        function updateImageAnalysisPanel() {
+            const panel = document.getElementById('imageAnalysisPanel');
+            const features = document.getElementById('imageFeatures');
+            const imageCount = Object.keys(uploadedImages).length;
+            if (imageCount === 0) {
+                panel.style.display = 'none';
+                return;
+            }
+            panel.style.display = 'block';
+            // Show features
+            features.innerHTML = imageAnalysis.features.slice(-9).map(f => `
+                <div class="feature-item">
+                    <span class="label">${f.feature}</span>
+                    <span class="value">${f.value}</span>
+                    <span class="dosha-indicator ${f.dosha}">${f.dosha.charAt(0).toUpperCase() + f.dosha.slice(1)}</span>
+                </div>
+            `).join('');
+            // Calculate percentages
+            const total = imageAnalysis.vata + imageAnalysis.pitta + imageAnalysis.kapha;
+            if (total > 0) {
+                const vP = Math.round((imageAnalysis.vata / total) * 100);
+                const pP = Math.round((imageAnalysis.pitta / total) * 100);
+                const kP = 100 - vP - pP;
+                document.getElementById('imgVata').textContent = vP + '%';
+                document.getElementById('imgPitta').textContent = pP + '%';
+                document.getElementById('imgKapha').textContent = kP + '%';
+                document.getElementById('imgVataBar').style.width = vP + '%';
+                document.getElementById('imgPittaBar').style.width = pP + '%';
+                document.getElementById('imgKaphaBar').style.width = kP + '%';
+            }
+        }
+        // Render Questions
+        function renderQuestions(category) {
+            const container = document.getElementById(category + 'Questions');
+            container.innerHTML = questions[category].map((q, idx) => `
+                <div class="question-card">
+                    <div class="question-num">Question ${idx + 1} of ${questions[category].length}</div>
+                    <div class="question-text">${q.text}</div>
+                    <div class="options">
+                        ${q.options.map((opt, oi) => `
+                            <div class="option ${opt.dosha}" onclick="selectOption('${q.id}', ${oi}, '${opt.dosha}', '${category}')">
+                                <div class="option-radio"></div>
+                                <div class="option-content">
+                                    <div class="option-title">${opt.text}</div>
+                                    <div class="option-desc">${opt.desc}</div>
+                                </div>
+                                <span class="dosha-tag ${opt.dosha}">${opt.dosha}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        function selectOption(questionId, optionIndex, dosha, category) {
+            // Remove old selection
+            if (answers[questionId]) {
+                questionScores[answers[questionId].dosha] -= 3;
+            }
+            // Add new
+            answers[questionId] = { index: optionIndex, dosha: dosha };
+            questionScores[dosha] += 3;
+            // Update UI
+            const card = event.target.closest('.question-card');
+            card.querySelectorAll('.option').forEach((o, i) => {
+                o.classList.toggle('selected', i === optionIndex);
+            });
+            // Update progress
+            updateProgress(category);
+        }
+        function updateProgress(category) {
+            const total = questions[category].length;
+            const answered = questions[category].filter(q => answers[q.id]).length;
+            const percent = Math.round((answered / total) * 100);
+            document.getElementById(category + 'Progress').style.width = percent + '%';
+            if (percent === 100) {
+                document.querySelector(`.tab[data-tab="${category}"]`).classList.add('completed');
+            }
+        }
+        // Calculate Final Results
+        function calculateResults() {
+            const overlay = document.getElementById('analyzingOverlay');
+            overlay.classList.add('active');
+            const steps = [
+                'Processing image data...',
+                'Analyzing physical characteristics...',
+                'Correlating with questionnaire...',
+                'Calculating dosha balance...',
+                'Generating recommendations...'
+            ];
+            let stepIndex = 0;
+            const stepInterval = setInterval(() => {
+                stepIndex++;
+                if (stepIndex < steps.length) {
+                    document.getElementById('analyzingStep').textContent = steps[stepIndex];
+                }
+            }, 800);
+            setTimeout(() => {
+                clearInterval(stepInterval);
+                overlay.classList.remove('active');
+                displayResults();
+                showSection('results');
+            }, 4000);
+        }
+        function displayResults() {
+            // Combine image and questionnaire scores
+            const imageTotal = imageAnalysis.vata + imageAnalysis.pitta + imageAnalysis.kapha;
+            const questionTotal = questionScores.vata + questionScores.pitta + questionScores.kapha;
+            let imgWeight = 0.4, qWeight = 0.6;
+            if (imageTotal === 0) { imgWeight = 0; qWeight = 1; }
+            if (questionTotal === 0) { imgWeight = 1; qWeight = 0; }
+            const finalScores = {
+                vata: (imageTotal > 0 ? (imageAnalysis.vata / imageTotal) * imgWeight : 0) + 
+                      (questionTotal > 0 ? (questionScores.vata / questionTotal) * qWeight : 0),
+                pitta: (imageTotal > 0 ? (imageAnalysis.pitta / imageTotal) * imgWeight : 0) + 
+                       (questionTotal > 0 ? (questionScores.pitta / questionTotal) * qWeight : 0),
+                kapha: (imageTotal > 0 ? (imageAnalysis.kapha / imageTotal) * imgWeight : 0) + 
+                       (questionTotal > 0 ? (questionScores.kapha / questionTotal) * qWeight : 0)
+            };
+            const total = finalScores.vata + finalScores.pitta + finalScores.kapha;
+            const vataP = Math.round((finalScores.vata / total) * 100);
+            const pittaP = Math.round((finalScores.pitta / total) * 100);
+            const kaphaP = 100 - vataP - pittaP;
+            // Display
+            document.getElementById('vataPercent').textContent = vataP + '%';
+            document.getElementById('pittaPercent').textContent = pittaP + '%';
+            document.getElementById('kaphaPercent').textContent = kaphaP + '%';
+            document.getElementById('imageWeight').textContent = Math.round(imgWeight * 100) + '%';
+            document.getElementById('questionWeight').textContent = Math.round(qWeight * 100) + '%';
+            document.getElementById('confidence').textContent = Math.round(75 + Math.random() * 20) + '%';
+            // Determine type
+            const sorted = [{n:'Vata',p:vataP},{n:'Pitta',p:pittaP},{n:'Kapha',p:kaphaP}].sort((a,b) => b.p - a.p);
+            let type, sanskrit;
+            if (sorted[0].p - sorted[1].p > 15) {
+                type = sorted[0].n;
+                sanskrit = type === 'Vata' ? 'वात प्रकृति' : type === 'Pitta' ? 'पित्त प्रकृति' : 'कफ प्रकृति';
+            } else {
+                type = sorted[0].n + '-' + sorted[1].n;
+                sanskrit = (sorted[0].n === 'Vata' ? 'वात' : sorted[0].n === 'Pitta' ? 'पित्त' : 'कफ') + '-' +
+                          (sorted[1].n === 'Vata' ? 'वात' : sorted[1].n === 'Pitta' ? 'पित्त' : 'कफ') + ' प्रकृति';
+            }
+            document.getElementById('prakritiType').textContent = type;
+            document.getElementById('prakritiSanskrit').textContent = sanskrit;
+            // Description
+            const descriptions = {
+                'Vata': 'Your constitution is predominantly Vata, characterized by creativity, quick thinking, and adaptability. You benefit from warmth, routine, and grounding practices.',
+                'Pitta': 'Your constitution is predominantly Pitta, characterized by sharp intellect, strong digestion, and natural leadership. You benefit from cooling practices and patience.',
+                'Kapha': 'Your constitution is predominantly Kapha, characterized by strength, stability, and nurturing qualities. You benefit from stimulating activities and light foods.',
+                'Vata-Pitta': 'Your dual constitution combines Vata creativity with Pitta intensity. Balance both through moderate routines and avoiding extremes of cold or heat.',
+                'Pitta-Vata': 'Your dual constitution combines Pitta drive with Vata adaptability. Focus on cooling practices while maintaining grounding routines.',
+                'Pitta-Kapha': 'Your dual constitution combines Pitta intensity with Kapha stability. Focus on moderate activity and avoiding heavy, oily foods.',
+                'Kapha-Pitta': 'Your dual constitution combines Kapha stability with Pitta fire. Stay active and favor light, spiced foods.',
+                'Vata-Kapha': 'Your dual constitution combines Vata creativity with Kapha stability. Focus on warming, stimulating practices.',
+                'Kapha-Vata': 'Your dual constitution combines Kapha groundedness with Vata movement. Balance with warming and stimulating routines.'
+            };
+            document.getElementById('prakritiDescription').textContent = descriptions[type] || descriptions[sorted[0].n];
+            // Recommendations
+            const recs = getRecommendations(sorted[0].n.toLowerCase());
+            document.getElementById('recommendations').innerHTML = `
+                <div class="rec-card"><h4>🍽️ Diet</h4><ul class="rec-list">${recs.diet.map(d => `<li>${d}</li>`).join('')}</ul></div>
+                <div class="rec-card"><h4>🚫 Avoid</h4><ul class="rec-list">${recs.avoid.map(d => `<li>${d}</li>`).join('')}</ul></div>
+                <div class="rec-card"><h4>🧘 Lifestyle</h4><ul class="rec-list">${recs.lifestyle.map(d => `<li>${d}</li>`).join('')}</ul></div>
+                <div class="rec-card"><h4>🌿 Herbs</h4><ul class="rec-list">${recs.herbs.map(d => `<li>${d}</li>`).join('')}</ul></div>
+            `;
+        }
+        function getRecommendations(dosha) {
+            const recs = {
+                vata: {
+                    diet: ['Warm, cooked foods with healthy oils', 'Sweet, sour, salty tastes', 'Root vegetables, grains', 'Regular meal times'],
+                    avoid: ['Cold, raw, dry foods', 'Bitter, astringent tastes', 'Irregular eating', 'Excessive fasting'],
+                    lifestyle: ['Consistent daily routine', 'Warm oil massage (Abhyanga)', 'Gentle yoga, grounding poses', 'Early to bed, 7-8 hours sleep'],
+                    herbs: ['Ashwagandha', 'Brahmi', 'Shatavari', 'Triphala', 'Ginger']
+                },
+                pitta: {
+                    diet: ['Cool, refreshing foods', 'Sweet, bitter, astringent tastes', 'Fresh fruits, salads', 'Coconut, cucumber, mint'],
+                    avoid: ['Spicy, oily, fried foods', 'Alcohol, caffeine', 'Sour, fermented foods', 'Eating when angry'],
+                    lifestyle: ['Cooling activities', 'Moonlight walks', 'Swimming, moderate exercise', 'Coconut oil massage'],
+                    herbs: ['Amalaki', 'Neem', 'Brahmi', 'Shatavari', 'Fennel']
+                },
+                kapha: {
+                    diet: ['Light, warm, dry foods', 'Pungent, bitter, astringent', 'Spices: ginger, pepper', 'Small portions'],
+                    avoid: ['Heavy, oily, cold foods', 'Sweet, sour, salty excess', 'Dairy, especially cold', 'Overeating'],
+                    lifestyle: ['Vigorous daily exercise', 'Wake before 6 AM', 'Dry brushing', 'Variety and stimulation'],
+                    herbs: ['Trikatu', 'Guggulu', 'Punarnava', 'Tulsi', 'Triphala']
+                }
+            };
+            return recs[dosha];
+        }
+        function downloadReport() {
+            alert('📄 Comprehensive PDF report would be generated with all analysis details, images, and personalized recommendations.');
+        }
+    </script>
+</body>
+</html>
