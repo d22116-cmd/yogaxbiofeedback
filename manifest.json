@@ -1,0 +1,49 @@
+{
+  "name": "Dhyanly™ — Intelligent Wellness Suite",
+  "short_name": "Dhyanly",
+  "description": "AI-powered wellness apps rooted in Indian Knowledge Systems. MCAS · DhyanlyApp · SvaraFlow · YogaArena.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F3EF",
+  "theme_color": "#1C1B18",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "MCAS",
+      "short_name": "MCAS",
+      "description": "Mindful Content Awareness System",
+      "url": "/mcas.html",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "DhyanlyApp",
+      "short_name": "Health",
+      "description": "Mental Health Monitor",
+      "url": "/dhyanly-app.html",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "SvaraFlow",
+      "short_name": "Flow",
+      "description": "Yoga, Habit & Journal Studio",
+      "url": "/svara-flow.html",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "YogaArena",
+      "short_name": "Arena",
+      "description": "Body Intelligence Game Engine",
+      "url": "/yoga-arena.html",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    }
+  ]
+}

@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SvaraFlow — Yoga, Habit & Journal Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200;1,9..144,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Azeret+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --canvas:#F5F3EF;--canvas2:#EEECEA;--white:#FDFCFA;--panel:#F0EDE8;
+  --ink-900:#1C1B18;--ink-700:#3D3C37;--ink-500:#6B6960;--ink-300:#A8A69E;--ink-100:#DDD9D1;
+  --sage:#3D7A5F;--sage-mid:#5A9A7A;--sage-light:#E8F2ED;--sage-pale:#F2F8F5;
+  --slate:#3B5A8A;--slate-lt:#EBF0F8;
+  --amber:#9B6B1A;--amber-lt:#FBF4E6;
+  --red:#8B2E2E;--red-lt:#FBEAEA;
+  --plum:#6B3D7A;--plum-lt:#F3EDF8;
+  --teal:#2A7A7A;--teal-lt:#E6F4F4;
+  --rule:rgba(28,27,24,.08);--rule-mid:rgba(28,27,24,.13);
+  --display:'Fraunces',Georgia,serif;--body:'Plus Jakarta Sans',system-ui,sans-serif;--mono:'Azeret Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sh-sm:0 1px 3px rgba(28,27,24,.05),0 4px 14px rgba(28,27,24,.06);
+  --sh-md:0 2px 8px rgba(28,27,24,.07),0 12px 32px rgba(28,27,24,.09);
+  --sh-lg:0 4px 16px rgba(28,27,24,.08),0 24px 64px rgba(28,27,24,.12);
+  --sidebar:240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--canvas);color:var(--ink-900);font-family:var(--body);font-size:14px;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* TOPNAV */
+.topnav{height:56px;background:var(--white);border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;z-index:100;position:relative}
+.tn-left{display:flex;align-items:center;gap:12px}
+.back-btn{display:flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);transition:color .2s}
+.back-btn:hover{color:var(--ink-700)}
+.tn-sep{width:1px;height:18px;background:var(--rule-mid)}
+.tn-name{font-family:var(--display);font-size:15px;font-weight:300;color:var(--ink-900);letter-spacing:-.1px}
+.tn-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);background:var(--canvas);border:1px solid var(--rule);border-radius:100px;padding:3px 10px}
+.tn-right{display:flex;align-items:center;gap:10px}
+.tn-streak{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--amber);background:var(--amber-lt);border:1px solid rgba(155,107,26,.15);border-radius:100px;padding:5px 12px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--sage-light);border:1px solid rgba(61,122,95,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--sage)}
+
+/* LAYOUT */
+.app-body{display:flex;flex:1;overflow:hidden;position:relative;z-index:1}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--white);border-right:1px solid var(--rule);display:flex;flex-direction:column;overflow-y:auto}
+.sb-section{padding:20px 16px 8px;font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-300)}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-500);text-decoration:none;transition:background .15s,color .15s;border-left:2px solid transparent}
+.sb-link:hover{background:var(--canvas);color:var(--ink-900)}
+.sb-link.active{background:var(--sage-pale);color:var(--sage);border-left-color:var(--sage)}
+.sb-icon{width:18px;height:18px;flex-shrink:0;opacity:.55}
+.sb-link.active .sb-icon{opacity:1}
+.sb-prakriti{margin:12px 16px;background:var(--sage-pale);border:1px solid rgba(61,122,95,.15);border-radius:10px;padding:10px 12px}
+.sb-prakriti-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);margin-bottom:3px}
+.sb-prakriti-val{font-size:12px;font-weight:600;color:var(--ink-900)}
+.sb-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--rule)}
+.quick-log-btn{width:100%;background:var(--sage);color:var(--white);border:none;border-radius:100px;padding:10px;font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.quick-log-btn:hover{opacity:.88}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;background:var(--canvas)}
+.page{display:none;padding:28px 32px;max-width:1100px}
+.page.active{display:block}
+.page-title{font-family:var(--display);font-size:28px;font-weight:200;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:4px}
+.page-sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-300);margin-bottom:28px}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:20px}
+.card-sm{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px}
+.clabel{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:12px}
+.cval{font-family:var(--display);font-size:36px;font-weight:200;letter-spacing:-.03em;line-height:1}
+.cunit{font-size:13px;opacity:.45;font-family:var(--body);font-weight:300;margin-left:2px}
+.cdelta{font-family:var(--mono);font-size:10px;margin-top:6px}
+.d-up{color:var(--sage)}.d-dn{color:var(--red)}.d-n{color:var(--ink-300)}
+
+/* TODAY PLAN */
+.today-item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--rule)}
+.today-item:last-child{border-bottom:none}
+.today-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--rule-mid);flex-shrink:0;margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s}
+.today-check.done{background:var(--sage);border-color:var(--sage)}
+.today-check.done::after{content:'✓';font-size:10px;color:white;font-weight:700}
+.today-time{font-family:var(--mono);font-size:10px;color:var(--ink-300);min-width:52px;margin-top:3px}
+.today-title{font-size:13px;font-weight:600;color:var(--ink-900);margin-bottom:2px}
+.today-meta{font-size:11px;color:var(--ink-500)}
+.today-cat{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:100px;margin-left:auto;white-space:nowrap}
+.cat-asana{background:var(--sage-light);color:var(--sage)}
+.cat-pranayama{background:var(--slate-lt);color:var(--slate)}
+.cat-meditation{background:var(--plum-lt);color:var(--plum)}
+.cat-nutrition{background:var(--amber-lt);color:var(--amber)}
+.cat-journal{background:var(--teal-lt);color:var(--teal)}
+
+/* LIBRARY GRID */
+.lib-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.lib-filter{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:100px;border:1px solid var(--rule);background:var(--white);color:var(--ink-300);cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.lib-filter.active{background:var(--sage);color:var(--white);border-color:var(--sage)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.lib-card{background:var(--white);border:1px solid var(--rule);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.lib-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.lib-card-img{height:100px;display:flex;align-items:center;justify-content:center;font-size:40px;border-bottom:1px solid var(--rule)}
+.lib-card-body{padding:12px}
+.lib-card-title{font-size:13px;font-weight:600;color:var(--ink-900);margin-bottom:3px}
+.lib-card-meta{font-size:11px;color:var(--ink-500)}
+.lib-card-tag{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:100px;display:inline-block;margin-top:6px}
+
+/* PRANAYAMA PRACTICE */
+.prana-card{background:linear-gradient(135deg,var(--slate-lt),var(--white));border:1px solid rgba(59,90,138,.15);border-radius:20px;padding:26px;margin-bottom:14px}
+.prana-title{font-family:var(--display);font-size:22px;font-weight:300;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:6px}
+.prana-sub{font-size:13px;color:var(--ink-500);margin-bottom:18px;line-height:1.6}
+
+/* MEDITATION TIMER */
+.med-timer-wrap{background:var(--white);border:1px solid var(--rule);border-radius:20px;padding:32px;text-align:center}
+.med-orb{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;background:var(--sage-pale);border:2px solid rgba(61,122,95,.2);display:flex;align-items:center;justify-content:center;position:relative;transition:transform .5s var(--ease)}
+.med-orb.breathing{animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(61,122,95,.1)}50%{transform:scale(1.12);box-shadow:0 0 0 16px rgba(61,122,95,0)}}
+.med-orb-inner{font-size:32px}
+.med-time{font-family:var(--display);font-size:48px;font-weight:200;letter-spacing:-.04em;color:var(--ink-900);margin-bottom:4px;line-height:1}
+.med-phase{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);margin-bottom:24px}
+.med-btn{background:var(--sage);color:var(--white);border:none;border-radius:100px;padding:12px 32px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s;margin:0 5px}
+.med-btn:hover{opacity:.88}
+.med-btn-stop{background:var(--canvas2);color:var(--ink-500);border:1px solid var(--rule)}
+.med-presets{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.med-preset{font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:100px;border:1px solid var(--rule);background:var(--canvas);color:var(--ink-500);cursor:pointer;transition:background .2s,border-color .2s}
+.med-preset.active{background:var(--sage-light);border-color:rgba(61,122,95,.2);color:var(--sage)}
+
+/* JOURNAL */
+.journal-entry{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:18px;margin-bottom:10px;cursor:pointer;transition:box-shadow .2s}
+.journal-entry:hover{box-shadow:var(--sh-sm)}
+.je-date{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-bottom:5px}
+.je-title{font-size:13px;font-weight:600;color:var(--ink-900);margin-bottom:4px}
+.je-preview{font-size:12px;color:var(--ink-500);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.je-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.je-tag{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:100px;background:var(--canvas);color:var(--ink-300);border:1px solid var(--rule)}
+.journal-compose{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:20px;margin-bottom:14px}
+.jc-prompts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.jc-prompt{font-size:12px;padding:6px 12px;border-radius:100px;border:1px solid var(--rule);background:var(--canvas);color:var(--ink-500);cursor:pointer;transition:background .2s}
+.jc-prompt:hover,.jc-prompt.active{background:var(--teal-lt);border-color:rgba(42,122,122,.2);color:var(--teal)}
+textarea{width:100%;background:var(--canvas);border:1px solid var(--rule);border-radius:12px;padding:14px;font-family:var(--body);font-size:13px;color:var(--ink-900);line-height:1.7;resize:vertical;outline:none;min-height:120px;transition:border-color .2s}
+textarea:focus{border-color:var(--rule-mid)}
+.jc-mood{display:flex;gap:10px;margin:12px 0;align-items:center}
+.jc-mood-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300)}
+.mood-btn{font-size:20px;cursor:pointer;padding:4px;border-radius:8px;transition:background .2s;border:2px solid transparent}
+.mood-btn.active{background:var(--canvas2);border-color:var(--rule-mid)}
+
+/* NUTRITION */
+.meal-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.meal-row:last-child{border-bottom:none}
+.meal-icon{width:36px;height:36px;border-radius:9px;background:var(--canvas);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.meal-name{font-size:13px;font-weight:500;color:var(--ink-900)}
+.meal-meta{font-size:11px;color:var(--ink-500)}
+.meal-cal{font-family:var(--mono);font-size:11px;color:var(--ink-300);margin-left:auto}
+.macro-bar{display:flex;height:8px;border-radius:100px;overflow:hidden;margin-top:12px}
+.macro-seg{height:100%;transition:width .6s var(--ease)}
+
+/* PROGRESS CHARTS */
+.progress-ring{display:inline-flex;flex-direction:column;align-items:center}
+.ring-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:6px;text-align:center}
+
+/* COMMUNITY */
+.community-post{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px;margin-bottom:10px}
+.cp-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cp-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.cp-name{font-size:13px;font-weight:600;color:var(--ink-900)}
+.cp-time{font-family:var(--mono);font-size:9px;color:var(--ink-300)}
+.cp-body{font-size:13px;color:var(--ink-700);line-height:1.65;margin-bottom:10px}
+.cp-actions{display:flex;gap:14px}
+.cp-action{font-family:var(--mono);font-size:10px;color:var(--ink-300);cursor:pointer;display:flex;align-items:center;gap:4px;transition:color .2s}
+.cp-action:hover{color:var(--ink-700)}
+.cp-tag{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:100px;background:var(--canvas);color:var(--ink-300);border:1px solid var(--rule)}
+
+/* NOTIFICATIONS */
+.notif-row{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--rule)}
+.notif-row:last-child{border-bottom:none}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.notif-title{font-size:13px;font-weight:600;color:var(--ink-900);margin-bottom:3px}
+.notif-body{font-size:12px;color:var(--ink-500);line-height:1.55}
+.notif-time{font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-left:auto;flex-shrink:0}
+.notif-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--rule)}
+.notif-toggle-row:last-child{border-bottom:none}
+.nt-label{font-size:13px;font-weight:500;color:var(--ink-900)}
+.nt-sub{font-size:12px;color:var(--ink-300);margin-top:1px}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.t-track{position:absolute;inset:0;background:var(--ink-100);border-radius:100px;transition:background .2s}
+.t-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--white);box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .2s}
+.toggle input:checked + .t-track{background:var(--sage)}
+.toggle input:checked ~ .t-thumb{transform:translateX(16px)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--ink-900);color:var(--white);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh-lg);max-width:320px;transform:translateY(80px);opacity:0;transition:transform .4s var(--ease),opacity .4s}
+.toast.show{transform:translateY(0);opacity:1}
+.t-icon{font-size:18px;flex-shrink:0}
+.t-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.t-body{font-size:11px;color:rgba(255,255,255,.6)}
+
+@media(max-width:768px){.sidebar{display:none}.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+</style>
+  <meta property="og:title" content="SvaraFlow — Yoga, Habit & Journal Studio · Dhyanly™"/>
+  <meta property="og:description" content="Personalised asana, pranayama, meditation, nutrition and journaling in one Ayurvedic wellness companion."/>
+  <meta property="og:url" content="https://yourusername.github.io/dhyanly/svara-flow.html"/>
+  <meta name="twitter:title" content="SvaraFlow — Yoga, Habit & Journal Studio · Dhyanly™"/>
+  <meta name="twitter:description" content="Personalised asana, pranayama, meditation, nutrition and journaling in one Ayurvedic wellness companion."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#1C1B18"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Dhyanly™"/>
+  <meta property="og:image" content="https://yourusername.github.io/dhyanly/favicon.svg"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:site" content="@yogaxbiofeedback"/>
+</head>
+<body>
+
+<!-- TOPNAV -->
+<div class="topnav">
+  <div class="tn-left">
+    <a href="index.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Dhyanly Suite
+    </a>
+    <div class="tn-sep" style="width:1px;height:18px;background:var(--rule-mid)"></div>
+    <span style="font-size:22px">🌿</span>
+    <span class="tn-name">SvaraFlow</span>
+    <span class="tn-tag">Yoga · Habit · Journal</span>
+  </div>
+  <div class="tn-right">
+    <div class="tn-streak">🔥 9-day streak</div>
+    <div class="avatar">ST</div>
+  </div>
+</div>
+
+<div class="app-body">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-prakriti">
+    <div class="sb-prakriti-lbl">Your Prakriti</div>
+    <div class="sb-prakriti-val">Vata–Pitta</div>
+  </div>
+  <div class="sb-section">Practice</div>
+  <a class="sb-link active" onclick="showPage('dashboard',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+    Today's Plan
+  </a>
+  <a class="sb-link" onclick="showPage('asana',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="4" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M9 6v4M6 10l3 2 3-2M5 14h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Asana Library
+  </a>
+  <a class="sb-link" onclick="showPage('pranayama',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><path d="M3 9c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M9 6v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Pranayama
+  </a>
+  <a class="sb-link" onclick="showPage('meditation',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="5" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M5 13c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M3 13h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    Meditation
+  </a>
+  <div class="sb-section">Lifestyle</div>
+  <a class="sb-link" onclick="showPage('nutrition',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><path d="M9 2C6.2 2 4 4.2 4 7c0 2.5 1.6 4.6 3.8 5.4L9 16l1.2-3.6C12.4 11.6 14 9.5 14 7c0-2.8-2.2-5-5-5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+    Nutrition
+  </a>
+  <a class="sb-link" onclick="showPage('journal',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="3" y="2" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6 6h6M6 9h6M6 12h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    Journal
+  </a>
+  <div class="sb-section">Growth</div>
+  <a class="sb-link" onclick="showPage('progress',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><polyline points="2,14 6,8 10,10 14,4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    Progress
+  </a>
+  <a class="sb-link" onclick="showPage('community',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="6.5" cy="6" r="2.5" stroke="currentColor" stroke-width="1.3"/><circle cx="12" cy="6" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M2 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M14 10c1.5.5 2.5 1.8 2.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    Community
+  </a>
+  <a class="sb-link" onclick="showPage('notifications',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><path d="M9 2a5 5 0 0 1 5 5v3l1.5 2h-13L4 10V7a5 5 0 0 1 5-5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 14a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.3"/></svg>
+    Notifications
+  </a>
+  <div class="sb-bottom">
+    <button class="quick-log-btn" onclick="quickLog()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Quick Log Practice
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ══ TODAY'S PLAN ══ -->
+<div class="page active" id="page-dashboard">
+  <div class="page-title">Today's Plan</div>
+  <div class="page-sub">Saturday · April 18, 2026 · Vata–Pitta personalised</div>
+
+  <div class="grid-4" style="margin-bottom:14px">
+    <div class="card-sm"><div class="clabel">Streak</div><div class="cval" style="color:var(--amber)">9<span class="cunit">days 🔥</span></div></div>
+    <div class="card-sm"><div class="clabel">Done Today</div><div class="cval" style="color:var(--sage)" id="doneCount">1<span class="cunit">/4</span></div></div>
+    <div class="card-sm"><div class="clabel">Practice Time</div><div class="cval">38<span class="cunit">min</span></div></div>
+    <div class="card-sm"><div class="clabel">Weekly Goal</div><div class="cval" style="color:var(--slate)">5<span class="cunit">/6 days</span></div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="clabel">Today's Schedule</div>
+    <div id="todayList"></div>
+  </div>
+
+  <div class="grid-2">
+    <div style="background:var(--sage-pale);border:1px solid rgba(61,122,95,.15);border-radius:14px;padding:18px">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);margin-bottom:6px">Prakriti Insight</div>
+      <div style="font-family:var(--display);font-size:17px;font-weight:300;color:var(--ink-900);margin-bottom:8px;letter-spacing:-.01em">Vata–Pitta Today</div>
+      <div style="font-size:13px;color:var(--ink-700);line-height:1.65">Vata is elevated this season. Your practice should be grounding, slow, and warming. Favour forward folds, seated postures, and left-nostril breathing over dynamic flows.</div>
+    </div>
+    <div style="background:var(--slate-lt);border:1px solid rgba(59,90,138,.15);border-radius:14px;padding:18px">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:6px">This Week's Focus</div>
+      <div style="font-family:var(--display);font-size:17px;font-weight:300;color:var(--ink-900);margin-bottom:8px;letter-spacing:-.01em">Nervous System Reset</div>
+      <div style="font-size:13px;color:var(--ink-700);line-height:1.65">6 sessions planned across asana, pranayama, and meditation. Track your HRV each morning. This week's protocol pairs with your DhyanlyApp anxiety scores.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ASANA LIBRARY ══ -->
+<div class="page" id="page-asana">
+  <div class="page-title">Asana Library</div>
+  <div class="page-sub">Personalised for Vata–Pitta · 48 postures</div>
+  <div class="lib-filters" id="asanaFilters"></div>
+  <div class="lib-grid" id="asanaGrid"></div>
+</div>
+
+<!-- ══ PRANAYAMA ══ -->
+<div class="page" id="page-pranayama">
+  <div class="page-title">Pranayama</div>
+  <div class="page-sub">Breathing practices · AI-matched to your scores</div>
+  <div class="prana-card" style="margin-bottom:14px">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin-bottom:8px">Recommended Today</div>
+    <div class="prana-title">Nadi Shodhana</div>
+    <div class="prana-sub">Alternate nostril breathing for balance. Excellent for Vata types — calms the nervous system, balances the two hemispheres, and prepares the mind for meditation.</div>
+    <button onclick="showPage('meditation',document.querySelectorAll('.sb-link')[3]);showToast('🌬️','Nadi Shodhana','Starting guided session — 8 rounds, 12 minutes.')" style="background:var(--slate);color:var(--white);border:none;border-radius:100px;padding:10px 24px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s">Start Session →</button>
+  </div>
+  <div class="lib-grid" id="pranaGrid"></div>
+</div>
+
+<!-- ══ MEDITATION ══ -->
+<div class="page" id="page-meditation">
+  <div class="page-title">Meditation</div>
+  <div class="page-sub">Mindfulness · Guided · Trataka · Yoga Nidra</div>
+  <div class="grid-2" style="align-items:start">
+    <div class="med-timer-wrap">
+      <div class="med-presets">
+        <div class="med-preset active" onclick="setDuration(5,this)">5 min</div>
+        <div class="med-preset" onclick="setDuration(10,this)">10 min</div>
+        <div class="med-preset" onclick="setDuration(20,this)">20 min</div>
+        <div class="med-preset" onclick="setDuration(30,this)">30 min</div>
+      </div>
+      <div class="med-orb" id="medOrb">
+        <div class="med-orb-inner">🌿</div>
+      </div>
+      <div class="med-time" id="medTime">05:00</div>
+      <div class="med-phase" id="medPhase">Settle into stillness</div>
+      <div>
+        <button class="med-btn" id="medBtn" onclick="toggleMed()">Begin</button>
+        <button class="med-btn med-btn-stop" id="medStop" onclick="stopMed()" style="display:none">End</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="clabel" style="display:block;margin-bottom:4px">Choose a Practice</div>
+      <div id="medTypes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NUTRITION ══ -->
+<div class="page" id="page-nutrition">
+  <div class="page-title">Nutrition</div>
+  <div class="page-sub">Sattvic · Ayurvedic · Vata–Pitta balanced</div>
+  <div class="grid-2" style="margin-bottom:14px;align-items:start">
+    <div class="card">
+      <div class="clabel">Today's Intake</div>
+      <div id="mealList"></div>
+      <div style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-300);margin-bottom:6px"><span>Calories</span><span id="calTotal">0 / 1800 kcal</span></div>
+        <div style="background:var(--panel);border-radius:100px;height:7px;overflow:hidden"><div id="calBar" style="height:100%;border-radius:100px;background:var(--sage);transition:width .6s var(--ease);width:0%"></div></div>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-bottom:8px">Macros</div>
+        <div class="macro-bar" id="macroBar"></div>
+        <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--ink-500)">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--sage);display:inline-block"></span>Carbs 55%</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--slate);display:inline-block"></span>Protein 25%</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--amber);display:inline-block"></span>Fat 20%</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="clabel">Sattvic Tip</div>
+        <div style="font-family:var(--display);font-size:16px;font-weight:300;color:var(--ink-900);margin-bottom:8px;letter-spacing:-.01em">"Eat to nourish, not to fill"</div>
+        <div style="font-size:12px;color:var(--ink-700);line-height:1.65">Vata types benefit from warm, oily, grounding foods. Favour cooked grains, root vegetables, ghee, and warm milk. Avoid raw salads and cold drinks today.</div>
+      </div>
+      <div class="card">
+        <div class="clabel">Recommended Foods</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="recFoods"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ JOURNAL ══ -->
+<div class="page" id="page-journal">
+  <div class="page-title">Journal</div>
+  <div class="page-sub">Reflective practice · Mindful writing</div>
+  <div class="journal-compose">
+    <div class="clabel">New Entry · April 18</div>
+    <div class="jc-prompts" id="journalPrompts"></div>
+    <textarea id="journalText" placeholder="Begin writing… let thoughts arrive without judgment."></textarea>
+    <div class="jc-mood">
+      <span class="jc-mood-lbl">Mood</span>
+      <span class="mood-btn" onclick="setMood(this,'😔')">😔</span>
+      <span class="mood-btn" onclick="setMood(this,'😐')">😐</span>
+      <span class="mood-btn" onclick="setMood(this,'🙂')">🙂</span>
+      <span class="mood-btn" onclick="setMood(this,'😊')">😊</span>
+      <span class="mood-btn active" onclick="setMood(this,'🌟')">🌟</span>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button onclick="saveJournal()" style="background:var(--teal);color:var(--white);border:none;border-radius:100px;padding:10px 22px;font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s">Save Entry</button>
+    </div>
+  </div>
+  <div id="journalEntries"></div>
+</div>
+
+<!-- ══ PROGRESS ══ -->
+<div class="page" id="page-progress">
+  <div class="page-title">Progress</div>
+  <div class="page-sub">Analytics · Habits · 8-week view</div>
+  <div class="grid-4" style="margin-bottom:14px">
+    <div class="card-sm"><div class="clabel">Total Sessions</div><div class="cval">47</div><div class="cdelta d-up">↑ this month</div></div>
+    <div class="card-sm"><div class="clabel">Asana Hours</div><div class="cval" style="color:var(--sage)">18<span class="cunit">h</span></div><div class="cdelta d-up">↑ 3h vs last month</div></div>
+    <div class="card-sm"><div class="clabel">Pranayama Hours</div><div class="cval" style="color:var(--slate)">9<span class="cunit">h</span></div><div class="cdelta d-up">Consistent</div></div>
+    <div class="card-sm"><div class="clabel">Journal Entries</div><div class="cval" style="color:var(--teal)">22</div><div class="cdelta d-up">↑ Best month</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="clabel">Weekly Practice Minutes</div>
+    <canvas id="progressGraph" height="90" style="width:100%;display:block;margin-top:4px"></canvas>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:6px" id="progressLabels"></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="clabel">Practice Split</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px" id="practiceBreakdown"></div>
+    </div>
+    <div class="card">
+      <div class="clabel">Habit Consistency</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px" id="habitGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COMMUNITY ══ -->
+<div class="page" id="page-community">
+  <div class="page-title">Community</div>
+  <div class="page-sub">Mind-body practitioners · Share your practice</div>
+  <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center">
+    <div style="flex:1;background:var(--white);border:1px solid var(--rule);border-radius:100px;padding:9px 16px;font-size:13px;color:var(--ink-300);cursor:text" onclick="showToast('✍️','Share','Post sharing coming soon.')">Share your practice today…</div>
+    <button onclick="showToast('📸','Post Shared','Your practice has been shared with the community.')" style="background:var(--sage);color:var(--white);border:none;border-radius:100px;padding:9px 20px;font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s">Share</button>
+  </div>
+  <div class="lib-filters" id="communityFilters"></div>
+  <div id="communityFeed"></div>
+</div>
+
+<!-- ══ NOTIFICATIONS ══ -->
+<div class="page" id="page-notifications">
+  <div class="page-title">Notifications</div>
+  <div class="page-sub">Smart habit reminders · Personalised timing</div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="clabel">Recent Notifications</div>
+    <div id="notifList"></div>
+  </div>
+  <div class="card">
+    <div class="clabel">Notification Settings</div>
+    <div id="notifSettings"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app-body -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="t-icon" id="tIcon">✓</span>
+  <div><div class="t-title" id="tTitle"></div><div class="t-body" id="tBody"></div></div>
+</div>
+
+<script>
+// ── PAGE NAV ──────────────────────────────────────────
+function showPage(id,link){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(link) link.classList.add('active');
+  if(id==='progress') setTimeout(drawProgress,60);
+}
+
+// ── TOAST ─────────────────────────────────────────────
+let toastT;
+function showToast(icon,title,body){
+  clearTimeout(toastT);
+  document.getElementById('tIcon').textContent=icon;
+  document.getElementById('tTitle').textContent=title;
+  document.getElementById('tBody').textContent=body;
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  toastT=setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ── TODAY LIST ────────────────────────────────────────
+const TODAY=[
+  {time:'6:30 AM',title:'Surya Namaskar · 5 rounds',meta:'Warm-up · 12 min · Intermediate',cat:'asana',done:true},
+  {time:'7:00 AM',title:'Chandra Bhedana · 10 rounds',meta:'Pranayama · 8 min · Prescribed',cat:'pranayama',done:false},
+  {time:'7:15 AM',title:'Awareness Meditation',meta:'Mindfulness · 10 min · Silent',cat:'meditation',done:false},
+  {time:'8:00 AM',title:'Journal Morning Pages',meta:'Reflective writing · 5 min',cat:'journal',done:false},
+];
+(function buildToday(){
+  const l=document.getElementById('todayList');
+  if(!l) return;
+  TODAY.forEach((item,i)=>{
+    const d=document.createElement('div');
+    d.className='today-item';
+    d.innerHTML=`
+      <div class="today-check ${item.done?'done':''}" onclick="toggleDone(this,${i})"></div>
+      <div class="today-time">${item.time}</div>
+      <div style="flex:1">
+        <div class="today-title" style="${item.done?'text-decoration:line-through;color:var(--ink-300)':''}">${item.title}</div>
+        <div class="today-meta">${item.meta}</div>
+      </div>
+      <span class="today-cat cat-${item.cat}">${item.cat}</span>`;
+    l.appendChild(d);
+  });
+})();
+let doneN=1;
+function toggleDone(el,i){
+  el.classList.toggle('done');
+  doneN+=el.classList.contains('done')?1:-1;
+  const t=el.parentElement.querySelector('.today-title');
+  if(t) t.style.cssText=el.classList.contains('done')?'text-decoration:line-through;color:var(--ink-300)':'';
+  const dc=document.getElementById('doneCount');
+  if(dc) dc.innerHTML=doneN+'<span class="cunit">/4</span>';
+  if(el.classList.contains('done')) showToast('✓','Practice Logged',TODAY[i].title+' completed.');
+}
+
+// ── ASANA LIBRARY ──────────────────────────────────────
+const ASANA_FILTERS=['All','Grounding','Standing','Forward Folds','Inversions','Restorative','Sun Salutation'];
+const ASANAS=[
+  {emoji:'🙏',name:'Tadasana',sub:'Mountain Pose · Foundation',cat:'Grounding',time:'Hold 5 breaths',level:'Beginner'},
+  {emoji:'🌳',name:'Vrikshasana',sub:'Tree Pose · Balance',cat:'Standing',time:'1 min each side',level:'Beginner'},
+  {emoji:'🌅',name:'Surya Namaskar',sub:'Sun Salutation · Full body',cat:'Sun Salutation',time:'5–12 rounds',level:'All levels'},
+  {emoji:'🌙',name:'Chandra Namaskar',sub:'Moon Salutation · Calming',cat:'Grounding',time:'3–5 rounds',level:'Intermediate'},
+  {emoji:'🦅',name:'Garudasana',sub:'Eagle Pose · Concentration',cat:'Standing',time:'1 min each side',level:'Intermediate'},
+  {emoji:'🦢',name:'Paschimottanasana',sub:'Seated Forward Fold',cat:'Forward Folds',time:'2–3 min',level:'Beginner'},
+  {emoji:'🌊',name:'Balasana',sub:'Child\'s Pose · Rest',cat:'Restorative',time:'As long as needed',level:'Beginner'},
+  {emoji:'🔄',name:'Sarvangasana',sub:'Shoulder Stand',cat:'Inversions',time:'3–5 min',level:'Intermediate'},
+  {emoji:'🌿',name:'Shavasana',sub:'Corpse Pose · Integration',cat:'Restorative',time:'10–15 min',level:'All levels'},
+  {emoji:'💫',name:'Natarajasana',sub:'Dancer\'s Pose',cat:'Standing',time:'30 sec each side',level:'Advanced'},
+  {emoji:'🌄',name:'Adhomukha Shvanasana',sub:'Downward Dog',cat:'Sun Salutation',time:'1–3 min',level:'Beginner'},
+  {emoji:'🌺',name:'Padmasana',sub:'Lotus Pose · Meditation',cat:'Grounding',time:'5–20 min',level:'Intermediate'},
+];
+(function buildAsana(){
+  const fp=document.getElementById('asanaFilters');
+  const grid=document.getElementById('asanaGrid');
+  if(!fp||!grid) return;
+  ASANA_FILTERS.forEach((f,i)=>{
+    const btn=document.createElement('div');
+    btn.className='lib-filter'+(i===0?' active':'');
+    btn.textContent=f;
+    btn.onclick=()=>{
+      document.querySelectorAll('.lib-filter').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAsana(f==='All'?ASANAS:ASANAS.filter(a=>a.cat===f));
+    };
+    fp.appendChild(btn);
+  });
+  renderAsana(ASANAS);
+})();
+function renderAsana(list){
+  const grid=document.getElementById('asanaGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  list.forEach(a=>{
+    const card=document.createElement('div');
+    card.className='lib-card';
+    card.onclick=()=>showToast('🧘',a.name,'Added to today\'s plan · '+a.time);
+    const bg={'Grounding':'var(--sage-pale)','Standing':'var(--slate-lt)','Forward Folds':'var(--amber-lt)','Inversions':'var(--plum-lt)','Restorative':'var(--teal-lt)','Sun Salutation':'var(--canvas)'}[a.cat]||'var(--canvas)';
+    card.innerHTML=`<div class="lib-card-img" style="background:${bg}">${a.emoji}</div>
+      <div class="lib-card-body">
+        <div class="lib-card-title">${a.name}</div>
+        <div class="lib-card-meta">${a.sub}</div>
+        <span class="lib-card-tag" style="background:${bg};color:var(--ink-500)">${a.level} · ${a.time}</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── PRANAYAMA LIBRARY ──────────────────────────────────
+const PRANAS=[
+  {emoji:'🌬️',name:'Nadi Shodhana',sub:'Alternate Nostril Breathing',bg:'var(--slate-lt)',time:'5–15 min',note:'Prescribed'},
+  {emoji:'🌙',name:'Chandra Bhedana',sub:'Left Nostril Only · Calming',bg:'var(--sage-pale)',time:'5–10 min',note:'Anxiety'},
+  {emoji:'☀️',name:'Surya Bhedana',sub:'Right Nostril Only · Energising',bg:'var(--amber-lt)',time:'5 min',note:'Morning'},
+  {emoji:'🌊',name:'Bhramari',sub:'Humming Bee Breath',bg:'var(--plum-lt)',time:'5 min',note:'Stress'},
+  {emoji:'🔥',name:'Kapalabhati',sub:'Skull-Shining Breath',bg:'var(--canvas)',time:'3–5 min',note:'Cleansing'},
+  {emoji:'❄️',name:'Sheetali',sub:'Cooling Breath',bg:'var(--teal-lt)',time:'5 min',note:'Pitta balance'},
+];
+(function buildPrana(){
+  const grid=document.getElementById('pranaGrid');
+  if(!grid) return;
+  PRANAS.forEach(p=>{
+    const card=document.createElement('div');
+    card.className='lib-card';
+    card.onclick=()=>showToast('🌬️',p.name,'Starting session — guided practice.');
+    card.innerHTML=`<div class="lib-card-img" style="background:${p.bg}">${p.emoji}</div>
+      <div class="lib-card-body">
+        <div class="lib-card-title">${p.name}</div>
+        <div class="lib-card-meta">${p.sub}</div>
+        <span class="lib-card-tag" style="background:${p.bg};color:var(--ink-500)">${p.time} · ${p.note}</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+})();
+
+// ── MEDITATION TYPES ───────────────────────────────────
+const MED_TYPES=[
+  {emoji:'🌿',name:'Mindfulness',sub:'Breath awareness · Silent observation',col:'var(--sage)'},
+  {emoji:'🕯️',name:'Trataka',sub:'Candle gazing · Concentration',col:'var(--amber)'},
+  {emoji:'🌊',name:'Yoga Nidra',sub:'Yogic sleep · Deep relaxation',col:'var(--slate)'},
+  {emoji:'🌸',name:'Loving Kindness',sub:'Metta · Compassion cultivation',col:'var(--plum)'},
+  {emoji:'🎵',name:'Mantra',sub:'Japa · So Hum · Om repetition',col:'var(--teal)'},
+];
+let selectedMed=0;
+(function buildMedTypes(){
+  const wrap=document.getElementById('medTypes');
+  if(!wrap) return;
+  MED_TYPES.forEach((m,i)=>{
+    const el=document.createElement('div');
+    el.style.cssText=`display:flex;gap:12px;align-items:center;padding:11px 14px;background:${i===0?'var(--sage-pale)':'var(--canvas)'};border:1px solid ${i===0?'rgba(61,122,95,.2)':'var(--rule)'};border-radius:12px;cursor:pointer;transition:background .2s,border-color .2s;margin-bottom:8px`;
+    el.innerHTML=`<span style="font-size:18px">${m.emoji}</span><div><div style="font-size:13px;font-weight:600;color:var(--ink-900)">${m.name}</div><div style="font-size:11px;color:var(--ink-500)">${m.sub}</div></div>`;
+    el.onclick=()=>{
+      selectedMed=i;
+      document.querySelectorAll('#medTypes > div').forEach((d,j)=>{
+        d.style.background=j===i?'var(--sage-pale)':'var(--canvas)';
+        d.style.borderColor=j===i?'rgba(61,122,95,.2)':'var(--rule)';
+      });
+      showToast(m.emoji,m.name,'Selected for this session.');
+    };
+    wrap.appendChild(el);
+  });
+})();
+
+// Meditation timer
+let medDur=5*60,medLeft=5*60,medRunning=false,medInt;
+function setDuration(min,el){
+  medDur=min*60;medLeft=min*60;
+  document.querySelectorAll('.med-preset').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  updateMedDisplay();
+}
+function toggleMed(){
+  if(medRunning){ pauseMed(); }
+  else {
+    medRunning=true;
+    document.getElementById('medBtn').textContent='Pause';
+    document.getElementById('medStop').style.display='inline-block';
+    document.getElementById('medOrb').classList.add('breathing');
+    document.getElementById('medPhase').textContent='Observe the breath…';
+    medInt=setInterval(()=>{
+      medLeft--;
+      if(medLeft<=0){ stopMed(); showToast('🌿','Session Complete','Well done. Take a moment in stillness.'); return; }
+      updateMedDisplay();
+    },1000);
+  }
+}
+function pauseMed(){ medRunning=false; clearInterval(medInt); document.getElementById('medBtn').textContent='Resume'; document.getElementById('medOrb').classList.remove('breathing'); }
+function stopMed(){ medRunning=false; clearInterval(medInt); medLeft=medDur; document.getElementById('medBtn').textContent='Begin'; document.getElementById('medStop').style.display='none'; document.getElementById('medOrb').classList.remove('breathing'); document.getElementById('medPhase').textContent='Settle into stillness'; updateMedDisplay(); }
+function updateMedDisplay(){ const m=Math.floor(medLeft/60),s=medLeft%60; document.getElementById('medTime').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+
+// ── NUTRITION ─────────────────────────────────────────
+const MEALS=[
+  {icon:'🌄',name:'Morning — Warm Water + Lemon',meta:'Fasting break · Sattvic start',cal:5},
+  {icon:'🍵',name:'Breakfast — Oats with Ghee & Dates',meta:'Grounding · Warm · 7:30 AM',cal:380},
+  {icon:'🥗',name:'Lunch — Khichdi with Vegetables',meta:'Tridoshic meal · 1:00 PM',cal:520},
+  {icon:'🍵',name:'Afternoon — Ashwagandha Milk',meta:'Adaptogenic · 4:00 PM',cal:120},
+  {icon:'🌙',name:'Dinner — Moong Dal Soup',meta:'Light · Easy digest · 7:30 PM',cal:320},
+];
+const REC_FOODS=[
+  {emoji:'🥜',name:'Sesame Seeds',reason:'Warming, grounding for Vata'},
+  {emoji:'🍯',name:'Raw Honey',reason:'Digestive, anti-Kapha'},
+  {emoji:'🧄',name:'Ginger',reason:'Agni kindle, Vata balance'},
+  {emoji:'🥛',name:'Warm Milk with Turmeric',reason:'Ojas builder, calming'},
+];
+(function buildNutrition(){
+  const list=document.getElementById('mealList');
+  if(!list) return;
+  let total=0;
+  MEALS.forEach(m=>{
+    total+=m.cal;
+    const r=document.createElement('div');
+    r.className='meal-row';
+    r.innerHTML=`<div class="meal-icon">${m.icon}</div><div style="flex:1"><div class="meal-name">${m.name}</div><div class="meal-meta">${m.meta}</div></div><div class="meal-cal">${m.cal} kcal</div>`;
+    list.appendChild(r);
+  });
+  const bar=document.getElementById('calBar');
+  const txt=document.getElementById('calTotal');
+  if(bar) bar.style.width=Math.min(100,total/1800*100)+'%';
+  if(txt) txt.textContent=total+' / 1800 kcal';
+  const mb=document.getElementById('macroBar');
+  if(mb) mb.innerHTML=`<div class="macro-seg" style="width:55%;background:var(--sage)"></div><div class="macro-seg" style="width:25%;background:var(--slate)"></div><div class="macro-seg" style="width:20%;background:var(--amber)"></div>`;
+  const rf=document.getElementById('recFoods');
+  if(rf) REC_FOODS.forEach(f=>{ const d=document.createElement('div'); d.style.cssText='display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-700)'; d.innerHTML=`<span style="font-size:16px">${f.emoji}</span><div><strong>${f.name}</strong> — ${f.reason}</div>`; rf.appendChild(d); });
+})();
+
+// ── JOURNAL ───────────────────────────────────────────
+const J_PROMPTS=['What am I grateful for?','How is my body feeling?','What did my practice reveal?','One intention for tomorrow','Emotions I noticed today'];
+const J_ENTRIES=[
+  {date:'Apr 17',title:'Morning stillness',preview:'Woke early before the alarm. The practice felt unusually grounded — maybe the cooler air. Nadi Shodhana was effortless today, left nostril dominant as expected.',tags:['morning','nadi shodhana','grounding']},
+  {date:'Apr 14',title:'Restless session',preview:'Mind wandered continuously during meditation. Noticed frustration arising — and then noticed the noticing. That was the practice. Chandra Bhedana helped settle things.',tags:['meditation','challenge','awareness']},
+  {date:'Apr 10',title:'Deep shavasana',preview:'Extended the final rest to 18 minutes. Something released in the chest area. Left the mat feeling lighter than I have in weeks.',tags:['shavasana','release','peace']},
+];
+(function buildJournal(){
+  const pp=document.getElementById('journalPrompts');
+  if(!pp) return;
+  J_PROMPTS.forEach(p=>{ const d=document.createElement('div'); d.className='jc-prompt'; d.textContent=p; d.onclick=()=>{ document.querySelectorAll('.jc-prompt').forEach(x=>x.classList.remove('active')); d.classList.add('active'); const ta=document.getElementById('journalText'); if(ta&&!ta.value) ta.value=p+'\n\n'; }; pp.appendChild(d); });
+  const wrap=document.getElementById('journalEntries');
+  if(!wrap) return;
+  J_ENTRIES.forEach(e=>{ const d=document.createElement('div'); d.className='journal-entry'; d.innerHTML=`<div class="je-date">${e.date} · 2026</div><div class="je-title">${e.title}</div><div class="je-preview">${e.preview}</div><div class="je-tags">${e.tags.map(t=>`<span class="je-tag">${t}</span>`).join('')}</div>`; d.onclick=()=>showToast('📓',e.title,'Opening entry…'); wrap.appendChild(d); });
+})();
+function setMood(el,m){ document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
+function saveJournal(){
+  const ta=document.getElementById('journalText');
+  if(!ta||!ta.value.trim()){ showToast('⚠','Empty Entry','Write something before saving.'); return; }
+  showToast('📓','Entry Saved','Journal updated · '+ta.value.length+' characters.');
+  ta.value='';
+}
+
+// ── PROGRESS ─────────────────────────────────────────
+function drawProgress(){
+  const c=document.getElementById('progressGraph');
+  if(!c) return;
+  c.width=c.parentElement.offsetWidth*2; c.height=90*2;
+  const ctx=c.getContext('2d'); const W=c.width,H=c.height,pad=16;
+  const data=[38,45,52,40,60,55,65,72];
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(28,27,24,.06)';ctx.lineWidth=1;
+  [0,.5,1].forEach(t=>{ const y=pad+(1-t)*(H-pad*2); ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke(); });
+  const max=Math.max(...data);
+  ctx.beginPath();
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-v/max)*(H-pad*2); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(pad+(data.length-1)*(W-pad*2)/(data.length-1),H-pad); ctx.lineTo(pad,H-pad); ctx.closePath();
+  ctx.fillStyle='rgba(61,122,95,.12)'; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle='#3D7A5F'; ctx.lineWidth=3; ctx.lineJoin='round';
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-v/max)*(H-pad*2); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  const lbl=document.getElementById('progressLabels');
+  if(lbl){ lbl.innerHTML=''; ['Wk 1','Wk 2','Wk 3','Wk 4','Wk 5','Wk 6','Wk 7','Wk 8'].forEach(w=>{ const s=document.createElement('span');s.textContent=w;lbl.appendChild(s); }); }
+  const pb=document.getElementById('practiceBreakdown');
+  if(pb){
+    pb.innerHTML='';
+    [{l:'Asana',p:45,c:'var(--sage)'},{l:'Pranayama',p:25,c:'var(--slate)'},{l:'Meditation',p:20,c:'var(--plum)'},{l:'Journal',p:10,c:'var(--teal)'}].forEach(item=>{
+      pb.innerHTML+=`<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:80px;color:var(--ink-700)">${item.l}</span><div style="flex:1;height:6px;background:var(--panel);border-radius:100px;overflow:hidden"><div style="width:${item.p}%;height:100%;background:${item.c};border-radius:100px"></div></div><span style="font-family:var(--mono);font-size:10px;color:var(--ink-500);min-width:28px;text-align:right">${item.p}%</span></div>`;
+    });
+  }
+  const hg=document.getElementById('habitGrid');
+  if(hg){
+    hg.innerHTML='';
+    [{l:'Morning Practice',days:6},{l:'Pranayama',days:7},{l:'Evening Journal',days:4},{l:'Nutrition Tracking',days:5}].forEach(h=>{
+      const pct=Math.round(h.days/7*100);
+      hg.innerHTML+=`<div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-700);margin-bottom:4px"><span>${h.l}</span><span style="font-family:var(--mono);font-size:10px;color:var(--ink-500)">${h.days}/7 days</span></div><div style="height:5px;background:var(--panel);border-radius:100px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${pct>=80?'var(--sage)':pct>=60?'var(--amber)':'var(--red)'};border-radius:100px"></div></div></div>`;
+    });
+  }
+}
+
+// ── COMMUNITY ─────────────────────────────────────────
+const POSTS=[
+  {initials:'AR',bg:'var(--sage-light)',color:'var(--sage)',name:'Anjali R.',time:'2h ago',body:'Completed 21-day Surya Namaskar challenge today. Grateful for this community — it kept me going on the days I wanted to skip. HRV actually improved by 12ms! 🙏',tags:['#SuryaNamaskar','#21DayChallenge'],likes:24,comments:7},
+  {initials:'KM',bg:'var(--slate-lt)',color:'var(--slate)',name:'Kartik M.',time:'5h ago',body:'First time completing Yoga Nidra for 30 minutes without falling asleep. Something shifted. The quality of stillness was completely different from anything I\'ve experienced before.',tags:['#YogaNidra','#Meditation'],likes:31,comments:12},
+  {initials:'PS',bg:'var(--amber-lt)',color:'var(--amber)',name:'Priya S.',time:'Yesterday',body:'Does anyone else find Chandra Bhedana more effective in the evening? I\'ve been experimenting — morning vs night — and the parasympathetic response is much stronger after sunset for me.',tags:['#ChandraBhedana','#Pranayama'],likes:18,comments:15},
+];
+const COM_FILTERS=['All','Asana','Pranayama','Meditation','Nutrition','Journal'];
+(function buildCommunity(){
+  const cf=document.getElementById('communityFilters');
+  const feed=document.getElementById('communityFeed');
+  if(!cf||!feed) return;
+  COM_FILTERS.forEach((f,i)=>{ const d=document.createElement('div'); d.className='lib-filter'+(i===0?' active':''); d.textContent=f; d.onclick=()=>{ document.querySelectorAll('#communityFilters .lib-filter').forEach(b=>b.classList.remove('active')); d.classList.add('active'); }; cf.appendChild(d); });
+  POSTS.forEach(p=>{ const d=document.createElement('div'); d.className='community-post'; d.innerHTML=`<div class="cp-header"><div class="cp-avatar" style="background:${p.bg};color:${p.color}">${p.initials}</div><div><div class="cp-name">${p.name}</div><div class="cp-time">${p.time}</div></div><div style="margin-left:auto">${p.tags.map(t=>`<span class="cp-tag" style="margin-left:6px">${t}</span>`).join('')}</div></div><div class="cp-body">${p.body}</div><div class="cp-actions"><span class="cp-action" onclick="this.style.color='var(--red)'">♡ ${p.likes}</span><span class="cp-action">💬 ${p.comments}</span><span class="cp-action" onclick="showToast('📤','Shared','Post link copied.')">↗ Share</span></div>`; feed.appendChild(d); });
+})();
+
+// ── NOTIFICATIONS ─────────────────────────────────────
+const NOTIFS=[
+  {dot:'var(--sage)',title:'Morning Practice Reminder','body':'Your 6:30 AM Surya Namaskar session starts in 10 minutes.','time':'6:20 AM'},
+  {dot:'var(--slate)',title:'Pranayama Streak','body':'9 days in a row! One more day to reach your 10-day milestone.','time':'Yesterday'},
+  {dot:'var(--amber)',title:'Nutrition Tip','body':'Vata season: try adding warm sesame oil to your evening meal tonight.','time':'2 days ago'},
+  {dot:'var(--plum)',title:'Journal Prompt','body':'You haven\'t journaled in 2 days. Take 5 minutes to reflect on your practice.','time':'2 days ago'},
+];
+const NOTIF_SETTINGS=[
+  {label:'Morning Practice',sub:'Daily reminder before your session','on':true},
+  {label:'Pranayama Sessions',sub:'Reminders for scheduled breathing','on':true},
+  {label:'Journal Prompts',sub:'Evening reflection nudges','on':true},
+  {label:'Streak Alerts',sub:'Milestone and streak notifications','on':true},
+  {label:'Community Activity',sub:'Likes, comments, new posts','on':false},
+  {label:'Nutrition Reminders',sub:'Meal timing and hydration nudges','on':false},
+];
+(function buildNotifications(){
+  const list=document.getElementById('notifList');
+  if(list) NOTIFS.forEach(n=>{ list.innerHTML+=`<div class="notif-row"><div class="notif-dot" style="background:${n.dot}"></div><div style="flex:1"><div class="notif-title">${n.title}</div><div class="notif-body">${n.body}</div></div><div class="notif-time">${n.time}</div></div>`; });
+  const settings=document.getElementById('notifSettings');
+  if(settings) NOTIF_SETTINGS.forEach(s=>{ settings.innerHTML+=`<div class="notif-toggle-row"><div><div class="nt-label">${s.label}</div><div class="nt-sub">${s.sub}</div></div><label class="toggle"><input type="checkbox" ${s.on?'checked':''}><div class="t-track"></div><div class="t-thumb"></div></label></div>`; });
+})();
+
+// ── QUICK LOG ─────────────────────────────────────────
+function quickLog(){ showToast('✓','Practice Logged','Session recorded in your progress log.'); }
+</script>
+</body>
+</html>

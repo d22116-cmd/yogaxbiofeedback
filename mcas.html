@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MCAS — Mindful Content Awareness System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200;1,9..144,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Azeret+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --canvas:#F5F3EF; --canvas2:#EEECEA; --white:#FDFCFA; --panel:#F0EDE8;
+  --ink-900:#1C1B18; --ink-700:#3D3C37; --ink-500:#6B6960; --ink-300:#A8A69E; --ink-100:#DDD9D1;
+  --sage:#3D7A5F; --sage-mid:#5A9A7A; --sage-light:#E8F2ED; --sage-pale:#F2F8F5;
+  --slate:#3B5A8A; --slate-lt:#EBF0F8;
+  --amber:#9B6B1A; --amber-lt:#FBF4E6;
+  --red:#8B2E2E; --red-lt:#FBEAEA;
+  --plum:#6B3D7A; --plum-lt:#F3EDF8;
+  --rule:rgba(28,27,24,.08); --rule-mid:rgba(28,27,24,.13);
+  --display:'Fraunces',Georgia,serif; --body:'Plus Jakarta Sans',system-ui,sans-serif; --mono:'Azeret Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sh-sm:0 1px 3px rgba(28,27,24,.05),0 4px 14px rgba(28,27,24,.06);
+  --sh-md:0 2px 8px rgba(28,27,24,.07),0 12px 32px rgba(28,27,24,.09);
+  --sh-lg:0 4px 16px rgba(28,27,24,.08),0 24px 64px rgba(28,27,24,.12);
+  --sidebar:240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--canvas);color:var(--ink-900);font-family:var(--body);font-size:14px;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+
+/* ── TOP NAV ── */
+.topnav{
+  height:56px;background:var(--white);border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;flex-shrink:0;z-index:100;
+}
+.tn-left{display:flex;align-items:center;gap:12px}
+.back-btn{
+  display:flex;align-items:center;gap:6px;text-decoration:none;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-300);transition:color .2s;padding:6px 0;
+}
+.back-btn:hover{color:var(--ink-700)}
+.tn-sep{width:1px;height:18px;background:var(--rule-mid)}
+.tn-logo{display:flex;align-items:center;gap:8px}
+.tn-logo svg{width:24px;height:24px}
+.tn-name{font-family:var(--display);font-size:15px;font-weight:300;color:var(--ink-900);letter-spacing:-.1px}
+.tn-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);background:var(--canvas);border:1px solid var(--rule);border-radius:100px;padding:3px 10px}
+.tn-right{display:flex;align-items:center;gap:10px}
+.monitor-btn{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--body);font-size:12px;font-weight:600;
+  background:var(--ink-900);color:var(--white);
+  border:none;border-radius:100px;padding:7px 16px;cursor:pointer;
+  transition:opacity .2s,transform .15s;
+}
+.monitor-btn:hover{opacity:.86;transform:translateY(-1px)}
+.monitor-btn.active{background:var(--red);animation:btnpulse 2s ease-in-out infinite}
+@keyframes btnpulse{0%,100%{box-shadow:0 0 0 0 rgba(139,46,46,.3)}50%{box-shadow:0 0 0 6px rgba(139,46,46,0)}}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--ink-300)}
+.monitor-btn.active .status-dot{background:var(--white);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--sage-light);border:1px solid rgba(61,122,95,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--sage)}
+
+/* ── BODY LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;background:var(--white);
+  border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.sb-section{padding:20px 16px 8px;font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-300)}
+.sb-link{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px;border-radius:0;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--ink-500);
+  text-decoration:none;transition:background .15s,color .15s;
+  border-left:2px solid transparent;
+}
+.sb-link:hover{background:var(--canvas);color:var(--ink-900)}
+.sb-link.active{background:var(--sage-pale);color:var(--sage);border-left-color:var(--sage)}
+.sb-icon{width:18px;height:18px;flex-shrink:0;opacity:.6}
+.sb-link.active .sb-icon{opacity:1}
+.sb-badge{margin-left:auto;font-family:var(--mono);font-size:9px;background:var(--red-lt);color:var(--red);border-radius:100px;padding:2px 7px}
+.sb-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--rule)}
+.sb-privacy{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--ink-300)}
+.lock-dot{width:6px;height:6px;border-radius:50%;background:var(--sage)}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;overflow-y:auto;background:var(--canvas)}
+.page{display:none;padding:28px 32px;max-width:1100px}
+.page.active{display:block}
+.page-title{font-family:var(--display);font-size:28px;font-weight:200;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--ink-300);margin-bottom:28px;font-family:var(--mono);font-size:10px;letter-spacing:.06em}
+
+/* ── GRID HELPERS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:20px}
+.card-sm{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px}
+.card-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:12px}
+.card-val{font-family:var(--display);font-size:36px;font-weight:200;letter-spacing:-.03em;color:var(--ink-900);line-height:1}
+.card-val-unit{font-size:14px;opacity:.45;font-family:var(--body);font-weight:300;margin-left:2px}
+.card-delta{font-family:var(--mono);font-size:10px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.delta-up{color:var(--sage)}.delta-down{color:var(--red)}.delta-neutral{color:var(--ink-300)}
+
+/* ── DONUT CHART ── */
+.donut-wrap{position:relative;width:140px;height:140px;flex-shrink:0}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.donut-center-val{font-family:var(--display);font-size:22px;font-weight:200;color:var(--ink-900);line-height:1}
+.donut-center-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:2px}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-700)}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.legend-pct{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-500)}
+
+/* ── RISK METER ── */
+.risk-bar{background:var(--panel);border-radius:100px;height:8px;overflow:hidden;margin:10px 0 6px}
+.risk-fill{height:100%;border-radius:100px;transition:width .8s var(--ease)}
+.risk-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-300)}
+
+/* ── SESSION TIMELINE ── */
+.timeline-grid{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin:12px 0}
+.timeline-hour{
+  height:36px;border-radius:5px;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+  position:relative;
+}
+.timeline-hour:hover{transform:scaleY(1.15);box-shadow:var(--sh-sm)}
+.timeline-labels{display:grid;grid-template-columns:repeat(24,1fr);gap:3px}
+.tl-lbl{font-family:var(--mono);font-size:7px;color:var(--ink-300);text-align:center}
+
+/* ── INTERVENTION PANEL ── */
+.intervention-overlay{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(28,27,24,.45);backdrop-filter:blur(12px);
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+.intervention-overlay.open{display:flex}
+.intervention-box{
+  background:var(--white);border-radius:28px;padding:44px 40px;
+  max-width:460px;width:100%;text-align:center;box-shadow:var(--sh-lg);
+  animation:popIn .4s var(--ease);
+}
+@keyframes popIn{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.iv-icon{font-size:44px;margin-bottom:18px;display:block}
+.iv-trigger{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);background:var(--red-lt);border-radius:100px;padding:4px 14px;display:inline-block;margin-bottom:20px}
+.iv-title{font-family:var(--display);font-size:26px;font-weight:300;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:12px;line-height:1.1}
+.iv-body{font-size:14px;color:var(--ink-500);line-height:1.75;margin-bottom:28px}
+.iv-steps{text-align:left;background:var(--canvas);border-radius:14px;padding:18px 20px;margin-bottom:28px}
+.iv-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;font-size:13px;color:var(--ink-700);line-height:1.5}
+.iv-step:last-child{margin-bottom:0}
+.iv-step-num{width:22px;height:22px;border-radius:50%;background:var(--sage-light);color:var(--sage);font-family:var(--mono);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.iv-btns{display:flex;gap:10px;justify-content:center}
+.iv-btn-primary{background:var(--ink-900);color:var(--white);border:none;border-radius:100px;padding:11px 28px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s}
+.iv-btn-primary:hover{opacity:.85}
+.iv-btn-secondary{background:transparent;color:var(--ink-500);border:1px solid var(--rule-mid);border-radius:100px;padding:11px 24px;font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;transition:border-color .2s,color .2s}
+.iv-btn-secondary:hover{border-color:var(--ink-300);color:var(--ink-900)}
+
+/* ── APP LIST ── */
+.app-row{
+  display:flex;align-items:center;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--rule);
+}
+.app-row:last-child{border-bottom:none}
+.app-app-icon{width:38px;height:38px;border-radius:10px;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.app-name{font-size:13px;font-weight:600;color:var(--ink-900)}
+.app-time{font-family:var(--mono);font-size:11px;color:var(--ink-300)}
+.app-bar-wrap{flex:1;height:5px;background:var(--panel);border-radius:100px;overflow:hidden}
+.app-bar-fill{height:100%;border-radius:100px;background:var(--sage)}
+.app-score{font-family:var(--mono);font-size:11px;color:var(--ink-500);min-width:32px;text-align:right}
+.app-toggle{position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer}
+.app-toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--ink-100);border-radius:100px;transition:background .2s}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--white);box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .2s}
+.app-toggle input:checked + .toggle-track{background:var(--sage)}
+.app-toggle input:checked ~ .toggle-thumb{transform:translateX(16px)}
+
+/* ── INSIGHT CARD ── */
+.insight-card{
+  background:linear-gradient(135deg,var(--sage-pale) 0%,var(--white) 100%);
+  border:1px solid rgba(61,122,95,.15);border-radius:16px;padding:22px;
+  display:flex;gap:16px;align-items:flex-start;
+}
+.insight-icon-wrap{width:40px;height:40px;border-radius:10px;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.insight-title{font-size:13px;font-weight:600;color:var(--sage);margin-bottom:5px}
+.insight-body{font-size:13px;color:var(--ink-700);line-height:1.65}
+
+/* ── MONITOR PAGE ── */
+.monitor-status-card{
+  background:var(--white);border:1px solid var(--rule);border-radius:20px;
+  padding:28px 24px;display:flex;align-items:center;gap:24px;margin-bottom:20px;
+}
+.monitor-orb{
+  width:64px;height:64px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--canvas);border:2px solid var(--rule);
+  font-size:24px;position:relative;
+}
+.monitor-orb.watching{background:var(--red-lt);border-color:rgba(139,46,46,.2);animation:orbpulse 2s ease-in-out infinite}
+@keyframes orbpulse{0%,100%{box-shadow:0 0 0 0 rgba(139,46,46,.15)}50%{box-shadow:0 0 0 10px rgba(139,46,46,0)}}
+.monitor-orb.safe{background:var(--sage-light);border-color:rgba(61,122,95,.2)}
+.ms-info{}
+.ms-state{font-family:var(--display);font-size:20px;font-weight:300;color:var(--ink-900);margin-bottom:4px}
+.ms-detail{font-size:12px;color:var(--ink-500)}
+.ms-right{margin-left:auto;text-align:right}
+.ms-app-badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;background:var(--red-lt);color:var(--red);border-radius:100px;padding:4px 12px;display:inline-block}
+.ms-time{font-family:var(--mono);font-size:28px;font-weight:300;color:var(--ink-900);margin-top:4px}
+
+/* Live analysis */
+.live-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.live-card{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px}
+.live-label{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:8px}
+
+/* Category bars (live) */
+.cat-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px}
+.cat-name{width:130px;color:var(--ink-700);flex-shrink:0}
+.cat-bar-wrap{flex:1;height:6px;background:var(--panel);border-radius:100px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:100px;transition:width 1.2s var(--ease)}
+.cat-pct{font-family:var(--mono);font-size:10px;color:var(--ink-500);min-width:28px;text-align:right}
+
+/* ── HOW IT WORKS ── */
+.pipeline{display:flex;flex-direction:column;gap:0}
+.pipe-step{
+  display:flex;gap:20px;align-items:flex-start;
+  padding:18px 0;border-bottom:1px solid var(--rule);
+  transition:background .2s;cursor:default;
+}
+.pipe-step:last-child{border-bottom:none}
+.pipe-step:hover{background:transparent}
+.pipe-num{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:var(--canvas);border:1px solid var(--rule);
+  font-family:var(--mono);font-size:12px;color:var(--ink-500);
+  display:flex;align-items:center;justify-content:center;font-weight:400;
+}
+.pipe-active .pipe-num{background:var(--sage-light);border-color:rgba(61,122,95,.2);color:var(--sage)}
+.pipe-content{}
+.pipe-title{font-size:13px;font-weight:600;color:var(--ink-900);margin-bottom:3px}
+.pipe-body{font-size:12px;color:var(--ink-500);line-height:1.6}
+.pipe-tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:2px 8px;border-radius:100px;background:var(--canvas2);color:var(--ink-300);margin-top:6px;display:inline-block}
+
+/* ── SETTINGS ── */
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0;border-bottom:1px solid var(--rule);
+}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:13px;font-weight:500;color:var(--ink-900)}
+.setting-sub{font-size:12px;color:var(--ink-300);margin-top:2px}
+.setting-control{}
+
+/* Slider */
+.slider-wrap{display:flex;align-items:center;gap:10px}
+.slider-val{font-family:var(--mono);font-size:11px;color:var(--ink-500);min-width:28px;text-align:right}
+input[type=range]{-webkit-appearance:none;height:4px;background:var(--panel);border-radius:100px;outline:none;cursor:pointer;width:120px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--ink-900);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+
+/* Select */
+select{font-family:var(--body);font-size:12px;color:var(--ink-700);background:var(--canvas);border:1px solid var(--rule);border-radius:8px;padding:6px 10px;cursor:pointer;outline:none}
+select:hover{border-color:var(--rule-mid)}
+
+/* ── NOTIFICATION TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:500;
+  background:var(--ink-900);color:var(--white);
+  border-radius:14px;padding:14px 18px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:var(--sh-lg);max-width:340px;
+  transform:translateY(80px);opacity:0;
+  transition:transform .4s var(--ease),opacity .4s;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-icon{font-size:18px;flex-shrink:0}
+.toast-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.toast-body{font-size:11px;color:rgba(255,255,255,.6)}
+
+/* ── PRIVACY BADGE ── */
+.privacy-strip{
+  background:var(--sage-pale);border:1px solid rgba(61,122,95,.12);
+  border-radius:12px;padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+  font-size:12px;color:var(--sage);margin-bottom:20px;
+}
+.privacy-strip svg{flex-shrink:0}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="tn-left">
+    <a href="index.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Dhyanly Suite
+    </a>
+    <div class="tn-sep"></div>
+    <div class="tn-logo">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="5.5" r="1.8" stroke="#1C1B18" stroke-width="1.2"/>
+        <path d="M12 7.3C14.5 8.5 15.5 6.8 14.5 4.8" stroke="#1C1B18" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M12 7.3C10 9.3 9 11.5 7.8 13 6.2 14.2 5.4 15.5 6.2 16.2 7.3 17 9.3 15.9 10.5 14.6 11.3 13.7 11.7 13.2 12 13.2c.3 0 .7.5 1.5 1.4 1.2 1.3 3.2 2.4 4.3 1.6.8-.7 0-2-1.6-3.2C15 11.5 14 9.3 12 7.3Z" stroke="#1C1B18" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6.8 16.2C6.4 17.8 8 18.5 9.6 17.7 10.7 17.1 11.6 16.7 12 16.7c.4 0 1.3.4 2.4 1 1.6.8 3.2 0 2.8-1.5" stroke="#1C1B18" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <span class="tn-name">MCAS</span>
+    </div>
+    <span class="tn-tag">Mindful Content Awareness</span>
+  </div>
+  <div class="tn-right">
+    <button class="monitor-btn" id="monitorBtn" onclick="toggleMonitor()">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="monitorBtnText">Start Monitoring</span>
+    </button>
+    <div class="avatar">ST</div>
+  </div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">Overview</div>
+    <a class="sb-link active" onclick="showPage('dashboard',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      Dashboard
+    </a>
+    <a class="sb-link" onclick="showPage('monitor',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M9 2.5v1.2M9 14.3v1.2M2.5 9h1.2M14.3 9h1.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Live Monitor
+      <span class="sb-badge" id="alertBadge" style="display:none">!</span>
+    </a>
+    <div class="sb-section">Analysis</div>
+    <a class="sb-link" onclick="showPage('report',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="3" y="2" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6 6h6M6 9h6M6 12h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Daily Report
+    </a>
+    <a class="sb-link" onclick="showPage('howitworks',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><path d="M9 1.5A7.5 7.5 0 1 0 9 16.5A7.5 7.5 0 0 0 9 1.5Z" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 6.5C7.5 5.7 8.2 5 9 5s1.5.7 1.5 1.5c0 1-1.5 1.5-1.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="9" cy="12.5" r=".8" fill="currentColor"/></svg>
+      How It Works
+    </a>
+    <div class="sb-section">Configuration</div>
+    <a class="sb-link" onclick="showPage('apps',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="2.5" rx="1.25" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="7.75" width="14" height="2.5" rx="1.25" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="11.5" width="14" height="2.5" rx="1.25" stroke="currentColor" stroke-width="1.2"/></svg>
+      Monitored Apps
+    </a>
+    <a class="sb-link" onclick="showPage('settings',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M9 1.5v1.5M9 15v1.5M1.5 9H3M15 9h1.5M3.7 3.7l1 1M13.3 13.3l1 1M3.7 14.3l1-1M13.3 4.7l1-1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Settings
+    </a>
+    <div class="sb-bottom">
+      <div class="sb-privacy">
+        <span class="lock-dot"></span>
+        All data stays on your device
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- ═══════════════════════════════
+         DASHBOARD PAGE
+    ═══════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Today · April 18, 2026</div>
+
+      <!-- Privacy badge -->
+      <div class="privacy-strip">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L3 4v4c0 2.8 2.2 5.2 5 5.5 2.8-.3 5-2.7 5-5.5V4L8 1.5Z" stroke="var(--sage)" stroke-width="1.3" stroke-linejoin="round"/><path d="M5.5 8l2 2 3-3" stroke="var(--sage)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span><strong>100% on-device.</strong> No screen data ever leaves your phone. All analysis happens locally, in real time.</span>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="grid-4" style="margin-bottom:14px">
+        <div class="card-sm">
+          <div class="card-title">Screen Time</div>
+          <div class="card-val">2<span class="card-val-unit">h 10m</span></div>
+          <div class="card-delta delta-up">↑ 12 min vs yesterday</div>
+        </div>
+        <div class="card-sm">
+          <div class="card-title">Emotional Exposure</div>
+          <div class="card-val" style="color:var(--red)">7.5<span class="card-val-unit">/10</span></div>
+          <div class="card-delta delta-down">↑ High today</div>
+        </div>
+        <div class="card-sm">
+          <div class="card-title">Addiction Risk</div>
+          <div class="card-val" style="color:var(--amber)">6.8<span class="card-val-unit">/10</span></div>
+          <div class="card-delta delta-down">↑ 0.4 vs yesterday</div>
+        </div>
+        <div class="card-sm">
+          <div class="card-title">Interventions</div>
+          <div class="card-val" style="color:var(--sage)">3<span class="card-val-unit"> today</span></div>
+          <div class="card-delta delta-up">2 accepted</div>
+        </div>
+      </div>
+
+      <!-- Content mix + timeline -->
+      <div class="grid-2" style="margin-bottom:14px">
+        <!-- Donut -->
+        <div class="card">
+          <div class="card-title">Content Mix Today</div>
+          <div style="display:flex;align-items:center;gap:24px;margin-top:4px">
+            <div class="donut-wrap">
+              <svg viewBox="0 0 140 140" width="140" height="140">
+                <!-- bg circle -->
+                <circle cx="70" cy="70" r="52" fill="none" stroke="#EEECEA" stroke-width="18"/>
+                <!-- segments: addictive 45% -->
+                <circle cx="70" cy="70" r="52" fill="none" stroke="#8B2E2E" stroke-width="18" stroke-dasharray="147.2 179.6" stroke-dashoffset="0" stroke-linecap="butt" transform="rotate(-90 70 70)"/>
+                <!-- emotional 30% -->
+                <circle cx="70" cy="70" r="52" fill="none" stroke="#9B6B1A" stroke-width="18" stroke-dasharray="98.1 228.7" stroke-dashoffset="-147.2" stroke-linecap="butt" transform="rotate(-90 70 70)"/>
+                <!-- entertainment 15% -->
+                <circle cx="70" cy="70" r="52" fill="none" stroke="#A8A69E" stroke-width="18" stroke-dasharray="49.1 277.7" stroke-dashoffset="-245.3" stroke-linecap="butt" transform="rotate(-90 70 70)"/>
+                <!-- educational 10% -->
+                <circle cx="70" cy="70" r="52" fill="none" stroke="#3D7A5F" stroke-width="18" stroke-dasharray="32.7 294.1" stroke-dashoffset="-294.4" stroke-linecap="butt" transform="rotate(-90 70 70)"/>
+              </svg>
+              <div class="donut-center"><div class="donut-center-val">2h</div><div class="donut-center-lbl">monitored</div></div>
+            </div>
+            <div class="legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#8B2E2E"></div>Addictive / Dopamine Loop<span class="legend-pct">45%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#9B6B1A"></div>Emotional Distress<span class="legend-pct">30%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#A8A69E"></div>Entertainment<span class="legend-pct">15%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#3D7A5F"></div>Educational<span class="legend-pct">10%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk scores -->
+        <div class="card">
+          <div class="card-title">Risk Scores</div>
+          <div style="margin-top:8px">
+            <div style="font-size:12px;color:var(--ink-700);margin-bottom:6px;display:flex;justify-content:space-between">
+              <span>Emotional Exposure</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">7.5</span>
+            </div>
+            <div class="risk-bar"><div class="risk-fill" style="width:75%;background:var(--red)"></div></div>
+            <div class="risk-labels"><span>Low</span><span>Medium</span><span>High</span></div>
+          </div>
+          <div style="margin-top:16px">
+            <div style="font-size:12px;color:var(--ink-700);margin-bottom:6px;display:flex;justify-content:space-between">
+              <span>Addiction Risk</span><span style="font-family:var(--mono);font-size:11px;color:var(--amber)">6.8</span>
+            </div>
+            <div class="risk-bar"><div class="risk-fill" style="width:68%;background:var(--amber)"></div></div>
+            <div class="risk-labels"><span>Low</span><span>Medium</span><span>High</span></div>
+          </div>
+          <div style="margin-top:16px">
+            <div style="font-size:12px;color:var(--ink-700);margin-bottom:6px;display:flex;justify-content:space-between">
+              <span>Night Vulnerability</span><span style="font-family:var(--mono);font-size:11px;color:var(--sage)">2.1</span>
+            </div>
+            <div class="risk-bar"><div class="risk-fill" style="width:21%;background:var(--sage)"></div></div>
+            <div class="risk-labels"><span>Low</span><span>Medium</span><span>High</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session timeline -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Session Timeline — Hourly Content</div>
+        <div class="timeline-grid" id="timelineGrid"></div>
+        <div class="timeline-labels" id="timelineLabels"></div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:2px;background:#8B2E2E;display:inline-block"></span>Addictive</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:2px;background:#9B6B1A;display:inline-block"></span>Emotional</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:2px;background:#A8A69E;display:inline-block"></span>Entertainment</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:2px;background:#3D7A5F;display:inline-block"></span>Educational</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:2px;background:var(--panel);border:1px solid var(--rule);display:inline-block"></span>Idle</span>
+        </div>
+      </div>
+
+      <!-- Insight + recommendation -->
+      <div class="grid-2">
+        <div class="insight-card">
+          <div class="insight-icon-wrap">💡</div>
+          <div>
+            <div class="insight-title">Today's Insight</div>
+            <div class="insight-body">Most of your screen time today was emotionally heavy or scroll-addictive. A 28-minute session after 9 PM included repeated emotional content. Your body likely responded with reduced parasympathetic activity.</div>
+          </div>
+        </div>
+        <div class="insight-card" style="background:linear-gradient(135deg,#FBF4E6,var(--white));border-color:rgba(155,107,26,.15)">
+          <div class="insight-icon-wrap" style="background:var(--amber-lt)">🌬️</div>
+          <div>
+            <div class="insight-title" style="color:var(--amber)">Tomorrow's Recommendation</div>
+            <div class="insight-body">Practice Nadi Shodhana for 5 minutes before sleeping tonight. Try setting a hard stop for Instagram at 9:30 PM tomorrow to prevent the late-night emotional content loop.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         LIVE MONITOR PAGE
+    ═══════════════════════════════ -->
+    <div class="page" id="page-monitor">
+      <div class="page-title">Live Monitor</div>
+      <div class="page-sub">Real-time content analysis</div>
+
+      <div class="monitor-status-card">
+        <div class="monitor-orb" id="monitorOrb">👁️</div>
+        <div class="ms-info">
+          <div class="ms-state" id="msState">Monitoring Idle</div>
+          <div class="ms-detail" id="msDetail">Press Start Monitoring to begin real-time content analysis.</div>
+        </div>
+        <div class="ms-right" id="msRight" style="display:none">
+          <div class="ms-app-badge" id="msAppBadge">Instagram</div>
+          <div class="ms-time" id="msTimer">00:00</div>
+        </div>
+      </div>
+
+      <div class="live-grid">
+        <!-- Live content categories -->
+        <div class="live-card">
+          <div class="live-label">Live Content Classification</div>
+          <div id="liveCats">
+            <div class="cat-row"><span class="cat-name">Addictive / Dopamine</span><div class="cat-bar-wrap"><div class="cat-bar-fill" id="catBar0" style="width:0%;background:#8B2E2E"></div></div><span class="cat-pct" id="catPct0">0%</span></div>
+            <div class="cat-row"><span class="cat-name">Emotional Distress</span><div class="cat-bar-wrap"><div class="cat-bar-fill" id="catBar1" style="width:0%;background:#9B6B1A"></div></div><span class="cat-pct" id="catPct1">0%</span></div>
+            <div class="cat-row"><span class="cat-name">Entertainment</span><div class="cat-bar-wrap"><div class="cat-bar-fill" id="catBar2" style="width:0%;background:#A8A69E"></div></div><span class="cat-pct" id="catPct2">0%</span></div>
+            <div class="cat-row"><span class="cat-name">Educational</span><div class="cat-bar-wrap"><div class="cat-bar-fill" id="catBar3" style="width:0%;background:#3D7A5F"></div></div><span class="cat-pct" id="catPct3">0%</span></div>
+            <div class="cat-row"><span class="cat-name">Positive / Mindful</span><div class="cat-bar-wrap"><div class="cat-bar-fill" id="catBar4" style="width:0%;background:#6B3D7A"></div></div><span class="cat-pct" id="catPct4">0%</span></div>
+          </div>
+        </div>
+
+        <!-- Behavior flags -->
+        <div class="live-card">
+          <div class="live-label">Behaviour Patterns Detected</div>
+          <div id="behavFlags" style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+            <div style="font-size:12px;color:var(--ink-300);font-style:italic">No patterns detected yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emotional load live meter -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Emotional Load — Current Session</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-top:8px">
+          <div class="card-val" id="liveScore" style="font-size:42px">0.0</div>
+          <div style="flex:1">
+            <div class="risk-bar" style="height:12px;margin-bottom:0">
+              <div class="risk-fill" id="liveScoreFill" style="width:0%;background:var(--sage);height:100%"></div>
+            </div>
+            <div class="risk-labels" style="margin-top:6px"><span>Safe</span><span>Caution</span><span>High Risk</span></div>
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-bottom:4px">Threshold</div>
+            <div style="font-family:var(--mono);font-size:13px;color:var(--ink-700)">5.0 / 10</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trigger intervention manually -->
+      <div class="card">
+        <div class="card-title">Yogic Interventions</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <button onclick="showIntervention('nadi')" style="background:var(--sage-pale);border:1px solid rgba(61,122,95,.15);border-radius:12px;padding:14px;text-align:left;cursor:pointer;transition:background .2s">
+            <div style="font-size:18px;margin-bottom:6px">🌬️</div>
+            <div style="font-size:13px;font-weight:600;color:var(--sage);margin-bottom:3px">Nadi Shodhana</div>
+            <div style="font-size:11px;color:var(--ink-500)">Alternate nostril breathing · 2 min</div>
+          </button>
+          <button onclick="showIntervention('awareness')" style="background:var(--slate-lt);border:1px solid rgba(59,90,138,.15);border-radius:12px;padding:14px;text-align:left;cursor:pointer;transition:background .2s">
+            <div style="font-size:18px;margin-bottom:6px">🧘</div>
+            <div style="font-size:13px;font-weight:600;color:var(--slate);margin-bottom:3px">3-Breath Pause</div>
+            <div style="font-size:11px;color:var(--ink-500)">Close eyes, three slow breaths · 1 min</div>
+          </button>
+          <button onclick="showIntervention('grounding')" style="background:var(--amber-lt);border:1px solid rgba(155,107,26,.15);border-radius:12px;padding:14px;text-align:left;cursor:pointer;transition:background .2s">
+            <div style="font-size:18px;margin-bottom:6px">🌱</div>
+            <div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:3px">Grounding</div>
+            <div style="font-size:11px;color:var(--ink-500)">Name 5 things you can see · 1 min</div>
+          </button>
+          <button onclick="showIntervention('sabbath')" style="background:var(--plum-lt);border:1px solid rgba(107,61,122,.15);border-radius:12px;padding:14px;text-align:left;cursor:pointer;transition:background .2s">
+            <div style="font-size:18px;margin-bottom:6px">🌙</div>
+            <div style="font-size:13px;font-weight:600;color:var(--plum);margin-bottom:3px">Digital Sabbath</div>
+            <div style="font-size:11px;color:var(--ink-500)">Rest your eyes and mind · now</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         DAILY REPORT PAGE
+    ═══════════════════════════════ -->
+    <div class="page" id="page-report">
+      <div class="page-title">Daily Report</div>
+      <div class="page-sub">April 18, 2026</div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+          <div>
+            <div style="font-family:var(--display);font-size:22px;font-weight:200;color:var(--ink-900);letter-spacing:-.02em">Daily Awareness Report</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--ink-300);margin-top:3px;letter-spacing:.06em">APRIL 18, 2026 · TOTAL MONITORED: 2H 10MIN</div>
+          </div>
+          <button onclick="alert('Export feature coming in v1.1')" style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:var(--canvas);border:1px solid var(--rule);border-radius:100px;padding:7px 16px;cursor:pointer;color:var(--ink-500)">Export JSON</button>
+        </div>
+
+        <!-- Summary numbers -->
+        <div class="grid-4" style="margin-bottom:20px">
+          <div style="text-align:center;padding:14px;background:var(--canvas);border-radius:12px;border:1px solid var(--rule)">
+            <div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--red)">7.5</div>
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Emotional Score</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--canvas);border-radius:12px;border:1px solid var(--rule)">
+            <div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--amber)">6.8</div>
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Addiction Risk</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--canvas);border-radius:12px;border:1px solid var(--rule)">
+            <div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--sage)">3</div>
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Interventions</div>
+          </div>
+          <div style="text-align:center;padding:14px;background:var(--canvas);border-radius:12px;border:1px solid var(--rule)">
+            <div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--slate)">4</div>
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Apps Monitored</div>
+          </div>
+        </div>
+
+        <!-- Content breakdown -->
+        <div style="margin-bottom:20px">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:12px">Content Breakdown</div>
+          <div class="cat-row"><span class="cat-name" style="font-weight:500">Addictive / Dopamine</span><div class="cat-bar-wrap" style="height:8px"><div class="cat-bar-fill" style="width:45%;background:#8B2E2E;height:100%"></div></div><span class="cat-pct">45%</span></div>
+          <div class="cat-row"><span class="cat-name" style="font-weight:500">Emotional Distress</span><div class="cat-bar-wrap" style="height:8px"><div class="cat-bar-fill" style="width:30%;background:#9B6B1A;height:100%"></div></div><span class="cat-pct">30%</span></div>
+          <div class="cat-row"><span class="cat-name" style="font-weight:500">Entertainment</span><div class="cat-bar-wrap" style="height:8px"><div class="cat-bar-fill" style="width:15%;background:#A8A69E;height:100%"></div></div><span class="cat-pct">15%</span></div>
+          <div class="cat-row"><span class="cat-name" style="font-weight:500">Educational</span><div class="cat-bar-wrap" style="height:8px"><div class="cat-bar-fill" style="width:10%;background:#3D7A5F;height:100%"></div></div><span class="cat-pct">10%</span></div>
+        </div>
+
+        <!-- Observations -->
+        <div style="border-top:1px solid var(--rule);padding-top:18px">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:12px">Observations</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-700);line-height:1.6">
+              <span style="color:var(--red);font-size:16px;flex-shrink:0;margin-top:1px">⚠</span>
+              28-minute session on Instagram after 9 PM included repeated breakup and loneliness content — classified as Emotional Distress Loop.
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-700);line-height:1.6">
+              <span style="color:var(--amber);font-size:16px;flex-shrink:0;margin-top:1px">⚠</span>
+              YouTube session of 44 minutes showed Addiction Loop pattern — short reels, low content variation, high dopamine scroll frequency.
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-700);line-height:1.6">
+              <span style="color:var(--sage);font-size:16px;flex-shrink:0;margin-top:1px">✓</span>
+              Accepted 2 of 3 Nadi Shodhana prompts. HRV recovery detected within 3 minutes of each accepted intervention.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendation -->
+      <div class="insight-card" style="background:linear-gradient(135deg,var(--sage-pale),var(--white));border-color:rgba(61,122,95,.15)">
+        <div class="insight-icon-wrap">🌬️</div>
+        <div>
+          <div class="insight-title">Tomorrow's Practice</div>
+          <div class="insight-body">Practice Nadi Shodhana for 5 minutes before sleeping tonight. Try setting a hard stop for Instagram at 9:30 PM tomorrow. On waking, 10 minutes of awareness meditation before opening any social app.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         HOW IT WORKS PAGE
+    ═══════════════════════════════ -->
+    <div class="page" id="page-howitworks">
+      <div class="page-title">How It Works</div>
+      <div class="page-sub">The MCAS pipeline — 8 stages, all on your device</div>
+
+      <div class="grid-2" style="align-items:start;gap:14px">
+        <div class="card">
+          <div class="pipeline">
+            <div class="pipe-step pipe-active">
+              <div class="pipe-num">01</div>
+              <div class="pipe-content">
+                <div class="pipe-title">App Detection</div>
+                <div class="pipe-body">MCAS detects when a monitored social or entertainment app moves to the foreground. Monitoring begins immediately.</div>
+                <span class="pipe-tag">UsageStatsManager · AccessibilityService</span>
+              </div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-num">02</div>
+              <div class="pipe-content">
+                <div class="pipe-title">Screen Capture</div>
+                <div class="pipe-body">A frame is captured every 20 seconds. Frames are held briefly in memory for analysis, then immediately deleted — never saved to disk.</div>
+                <span class="pipe-tag">MediaProjection API · JPEG compression</span>
+              </div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-num">03</div>
+              <div class="pipe-content">
+                <div class="pipe-title">On-Device OCR</div>
+                <div class="pipe-body">Text visible on screen — captions, hashtags, comments, overlays — is extracted and tokenised for keyword classification.</div>
+                <span class="pipe-tag">Google ML Kit Text Recognition v2</span>
+              </div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-num">04</div>
+              <div class="pipe-content">
+                <div class="pipe-title">Image Classification</div>
+                <div class="pipe-body">Each frame passes through a lightweight neural network detecting faces, emotional scenes, violence, fast-cut patterns, and lifestyle imagery.</div>
+                <span class="pipe-tag">MobileNetV3 · TensorFlow Lite INT8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="pipeline">
+            <div class="pipe-step">
+              <div class="pipe-num">05</div>
+              <div class="pipe-content">
+                <div class="pipe-title">Content Classification</div>
+                <div class="pipe-body">OCR tokens and image scores are combined into a category distribution per frame: Addictive, Emotional, Educational, Entertainment, Positive.</div>
+                <span class="pipe-tag">Weighted fusion · Rule-based engine</span>
+              </div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-num">06</div>
+              <div class="pipe-content">
+                <div class="pipe-title">Behaviour Analysis</div>
+                <div class="pipe-body">Patterns across frames are tracked — repetition loops, emotional drift, addiction spirals, night vulnerability, and duration thresholds.</div>
+                <span class="pipe-tag">Temporal pattern engine · Scoring model</span>
+              </div>
+            </div>
+            <div class="pipe-step pipe-active">
+              <div class="pipe-num">07</div>
+              <div class="pipe-content">
+                <div class="pipe-title">Yogic Intervention</div>
+                <div class="pipe-body">When a threshold is crossed, MCAS triggers a personalised intervention — Nadi Shodhana, grounding, a breath pause, or a digital sabbath suggestion.</div>
+                <span class="pipe-tag">Svara Yoga · Pranayama library</span>
+              </div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-num">08</div>
+              <div class="pipe-content">
+                <div class="pipe-title">Encrypted Storage + Report</div>
+                <div class="pipe-body">Session summaries are stored encrypted on your device. Daily reports surface awareness insights — framed as data, not shame.</div>
+                <span class="pipe-tag">AES-256 · Room Database · Local only</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         MONITORED APPS PAGE
+    ═══════════════════════════════ -->
+    <div class="page" id="page-apps">
+      <div class="page-title">Monitored Apps</div>
+      <div class="page-sub">Toggle which apps MCAS watches</div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Social & Entertainment</div>
+        <div id="appList">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Today's App Breakdown</div>
+        <div id="appBreakdown"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         SETTINGS PAGE
+    ═══════════════════════════════ -->
+    <div class="page" id="page-settings">
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Personalise your MCAS experience</div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Detection</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Capture Interval</div><div class="setting-sub">How often MCAS captures a frame for analysis</div></div>
+          <select id="intervalSel">
+            <option>Every 10 seconds (Research)</option>
+            <option selected>Every 20 seconds (Default)</option>
+            <option>Every 30 seconds (Battery Saver)</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Sensitivity</div><div class="setting-sub">Threshold for triggering an intervention (lower = more sensitive)</div></div>
+          <div class="slider-wrap">
+            <input type="range" min="1" max="10" value="5" id="sensitivitySlider" oninput="document.getElementById('sensVal').textContent=this.value+'/10'"/>
+            <span class="slider-val" id="sensVal">5/10</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Night Mode</div><div class="setting-sub">Heightened sensitivity 10 PM – 1 AM</div></div>
+          <label class="app-toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Interventions</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Intervention Style</div><div class="setting-sub">How MCAS alerts you</div></div>
+          <select>
+            <option>Haptic + On-screen prompt</option>
+            <option selected>On-screen prompt only</option>
+            <option>Audio + Haptic</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Snooze Duration</div><div class="setting-sub">How long to pause interventions after dismissing</div></div>
+          <select>
+            <option>5 minutes</option>
+            <option selected>10 minutes</option>
+            <option>30 minutes</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Nadi Shodhana Auto-Trigger</div><div class="setting-sub">Auto-suggest when Emotional Distress &gt; 40%</div></div>
+          <label class="app-toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Privacy & Data</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Data Retention</div><div class="setting-sub">How long to keep session history on device</div></div>
+          <select>
+            <option>7 days</option>
+            <option selected>30 days</option>
+            <option>90 days</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Research Mode</div><div class="setting-sub">Enable anonymised data export for academic use (IRB compliant)</div></div>
+          <label class="app-toggle"><input type="checkbox"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="setting-row" style="border-bottom:none">
+          <div><div class="setting-label" style="color:var(--red)">Clear All Data</div><div class="setting-sub">Permanently delete all session history from this device</div></div>
+          <button onclick="if(confirm('Delete all MCAS data from this device?'))alert('Data cleared.')" style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:var(--red-lt);color:var(--red);border:1px solid rgba(139,46,46,.2);border-radius:100px;padding:7px 14px;cursor:pointer">Clear Data</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .main -->
+</div><!-- end .app-body -->
+
+<!-- INTERVENTION OVERLAY -->
+<div class="intervention-overlay" id="ivOverlay">
+  <div class="intervention-box">
+    <span class="iv-icon" id="ivIcon">🌬️</span>
+    <span class="iv-trigger" id="ivTrigger">Emotional Distress Detected</span>
+    <div class="iv-title" id="ivTitle">Nadi Shodhana</div>
+    <div class="iv-body" id="ivBody">Your feed has shown emotionally heavy content for the past few minutes. This breathing practice will help restore balance in your nervous system.</div>
+    <div class="iv-steps" id="ivSteps"></div>
+    <div class="iv-btns">
+      <button class="iv-btn-primary" onclick="acceptIntervention()">Begin Practice</button>
+      <button class="iv-btn-secondary" onclick="closeIntervention()">Snooze 10 min</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon">🌬️</span>
+  <div>
+    <div class="toast-title" id="toastTitle">Practice complete</div>
+    <div class="toast-body" id="toastBody">HRV recovery detected. Well done.</div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────
+const APPS = [
+  {name:'Instagram',icon:'📸',time:'52 min',score:78,on:true},
+  {name:'YouTube',icon:'▶️',time:'44 min',score:62,on:true},
+  {name:'Twitter / X',icon:'🐦',time:'18 min',score:45,on:true},
+  {name:'TikTok',icon:'🎵',time:'16 min',score:82,on:true},
+  {name:'Reddit',icon:'🤖',time:'0 min',score:0,on:false},
+  {name:'Snapchat',icon:'👻',time:'0 min',score:0,on:false},
+];
+
+const TIMELINE_COLORS = ['#EEECEA','#EEECEA','#EEECEA','#EEECEA','#EEECEA','#EEECEA',
+  '#EEECEA','#EEECEA','3D7A5F','#3D7A5F','#EEECEA','#EEECEA',
+  '#9B6B1A','#8B2E2E','#8B2E2E','#EEECEA','#8B2E2E','#9B6B1A',
+  '#8B2E2E','#8B2E2E','#9B6B1A','#EEECEA','#EEECEA','#EEECEA'];
+
+const INTERVENTIONS = {
+  nadi:{icon:'🌬️',trigger:'Emotional Distress Detected',title:'Nadi Shodhana',
+    body:'Your feed has shown emotionally heavy content. This alternate nostril breathing will restore balance in your autonomic nervous system.',
+    steps:['Close your eyes and rest your right thumb on your right nostril.',
+           'Inhale slowly through your left nostril for 4 counts.',
+           'Close both nostrils briefly — hold for 2 counts.',
+           'Release right nostril — exhale slowly for 6 counts.',
+           'Repeat on the other side. Continue for 2 minutes.']},
+  awareness:{icon:'🧘',trigger:'Duration Threshold (20 min)',title:'3-Breath Awareness Pause',
+    body:'You have been scrolling for over 20 minutes. A brief awareness pause interrupts the loop and re-centres your attention.',
+    steps:['Put your phone face-down.',
+           'Close your eyes for 10 seconds.',
+           'Take three slow, deep breaths — notice the sensation.',
+           'Ask yourself: how do I feel right now?']},
+  grounding:{icon:'🌱',trigger:'Addiction Loop Detected',title:'Grounding Technique',
+    body:'MCAS detected a repetitive content loop. Grounding exercises redirect your attention from the screen to your physical environment.',
+    steps:['Look up from your phone.',
+           'Name 5 things you can see around you.',
+           'Name 4 things you can touch.',
+           'Name 1 thing you can smell.',
+           'Take a slow breath. You are here, now.']},
+  sabbath:{icon:'🌙',trigger:'Night Vulnerability Mode',title:'Digital Sabbath',
+    body:'It\'s late, and the content you\'ve been watching has been emotionally heavy. Resting your mind now will protect your sleep.',
+    steps:['Place your phone out of arm\'s reach.',
+           'Dim the lights in your room.',
+           'Spend 5 minutes with your eyes closed, breathing gently.',
+           'Return to your phone only after a full night\'s sleep.']}
+};
+
+// ─── PAGE NAVIGATION ─────────────────────────────
+function showPage(id, link){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(link) link.classList.add('active');
+}
+
+// ─── TIMELINE ────────────────────────────────────
+(function buildTimeline(){
+  const grid = document.getElementById('timelineGrid');
+  const labels = document.getElementById('timelineLabels');
+  TIMELINE_COLORS.forEach((c,i)=>{
+    const h = document.createElement('div');
+    h.className='timeline-hour';
+    h.style.background = c.startsWith('#') ? c : '#'+c;
+    h.title=`${i}:00`;
+    grid.appendChild(h);
+    const l = document.createElement('div');
+    l.className='tl-lbl';
+    l.textContent = i%6===0 ? i+'h' : '';
+    labels.appendChild(l);
+  });
+})();
+
+// ─── APP LIST ─────────────────────────────────────
+(function buildAppList(){
+  const list = document.getElementById('appList');
+  const breakdown = document.getElementById('appBreakdown');
+  APPS.forEach((app,i)=>{
+    // Main list
+    const row = document.createElement('div');
+    row.className = 'app-row';
+    row.innerHTML = `
+      <div class="app-app-icon" style="background:${app.on?'var(--sage-light)':'var(--canvas)'}">${app.icon}</div>
+      <div style="min-width:100px"><div class="app-name">${app.name}</div><div class="app-time">${app.time}</div></div>
+      <div class="app-bar-wrap"><div class="app-bar-fill" style="width:${app.score}%;background:${app.score>70?'var(--red)':app.score>40?'var(--amber)':'var(--sage)'}"></div></div>
+      <div class="app-score">${app.score}</div>
+      <label class="app-toggle">
+        <input type="checkbox" ${app.on?'checked':''} onchange="APPS[${i}].on=this.checked;showToast('⚙️','App Updated',APPS[${i}].name+' monitoring '+(this.checked?'enabled':'disabled'))"/>
+        <div class="toggle-track"></div><div class="toggle-thumb"></div>
+      </label>`;
+    list.appendChild(row);
+    // Breakdown
+    if(app.score>0){
+      const b = document.createElement('div');
+      b.innerHTML=`<div class="cat-row" style="margin-bottom:10px">
+        <span style="display:flex;align-items:center;gap:8px;width:140px;font-size:12px;color:var(--ink-700)"><span style="font-size:14px">${app.icon}</span>${app.name}</span>
+        <div class="cat-bar-wrap" style="height:7px"><div class="cat-bar-fill" style="width:${app.score}%;background:${app.score>70?'var(--red)':app.score>40?'var(--amber)':'var(--sage)'};height:100%"></div></div>
+        <span class="cat-pct">${app.time}</span></div>`;
+      breakdown.appendChild(b);
+    }
+  });
+})();
+
+// ─── MONITOR TOGGLE ───────────────────────────────
+let monitoring = false;
+let monitorTimer = 0;
+let monitorInterval;
+let liveInterval;
+let currentScore = 0;
+
+function toggleMonitor(){
+  monitoring = !monitoring;
+  const btn = document.getElementById('monitorBtn');
+  const txt = document.getElementById('monitorBtnText');
+  const dot = document.getElementById('statusDot');
+  const orb = document.getElementById('monitorOrb');
+  const state = document.getElementById('msState');
+  const detail = document.getElementById('msDetail');
+  const right = document.getElementById('msRight');
+  const badge = document.getElementById('alertBadge');
+
+  if(monitoring){
+    btn.classList.add('active'); txt.textContent='Stop Monitoring'; dot.style.background='var(--white)';
+    orb.classList.add('watching'); orb.textContent='👁️';
+    state.textContent='Monitoring Instagram'; detail.textContent='Analysing content every 20 seconds. All processing on-device.';
+    right.style.display='block'; badge.style.display='none';
+    monitorTimer=0;
+    monitorInterval = setInterval(()=>{ monitorTimer++; updateTimer(); }, 1000);
+    liveInterval = setInterval(simulateLive, 3000);
+    showToast('👁️','Monitoring Started','MCAS is now watching Instagram.');
+    setTimeout(()=>{ if(monitoring) showIntervention('nadi'); },14000);
+  } else {
+    btn.classList.remove('active'); txt.textContent='Start Monitoring'; dot.style.background='var(--ink-300)';
+    orb.classList.remove('watching'); orb.classList.remove('safe'); orb.classList.add('safe'); orb.textContent='✓';
+    state.textContent='Session Ended'; detail.textContent='Last session: '+formatTime(monitorTimer)+' · Report saved to Daily Report.';
+    right.style.display='none';
+    clearInterval(monitorInterval); clearInterval(liveInterval);
+    showToast('📊','Session Saved',formatTime(monitorTimer)+' session added to your daily report.');
+    resetLive();
+  }
+}
+
+function updateTimer(){
+  const el = document.getElementById('msTimer');
+  if(el) el.textContent = formatTime(monitorTimer);
+}
+function formatTime(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+
+const liveProfiles = [
+  [42,28,15,10,5],[55,20,10,8,7],[30,35,18,12,5],[18,12,42,20,8]
+];
+let liveProfileIdx=0;
+function simulateLive(){
+  liveProfileIdx=(liveProfileIdx+1)%liveProfiles.length;
+  const p=liveProfiles[liveProfileIdx];
+  const ids=['catBar0','catBar1','catBar2','catBar3','catBar4'];
+  const pids=['catPct0','catPct1','catPct2','catPct3','catPct4'];
+  p.forEach((v,i)=>{ document.getElementById(ids[i]).style.width=v+'%'; document.getElementById(pids[i]).textContent=v+'%'; });
+  currentScore = (p[0]*0.9+p[1]*0.8)/20;
+  const scoreEl=document.getElementById('liveScore');
+  const fillEl=document.getElementById('liveScoreFill');
+  if(scoreEl){
+    scoreEl.textContent=currentScore.toFixed(1);
+    fillEl.style.width=(currentScore*10)+'%';
+    fillEl.style.background=currentScore>7?'var(--red)':currentScore>4?'var(--amber)':'var(--sage)';
+  }
+  // Update behaviour flags
+  const flags=document.getElementById('behavFlags');
+  const flagData=[];
+  if(p[0]>40) flagData.push({c:'-red',icon:'⚠',t:'Addiction Loop',d:'High frequency short-form content detected'});
+  if(p[1]>25) flagData.push({c:'-amber',icon:'⚠',t:'Emotional Drift',d:'Content shifting toward distress category'});
+  if(monitorTimer>60) flagData.push({c:'-slate',icon:'⏱',t:'Duration Threshold',d:'>1 min continuous session'});
+  if(flags){
+    if(flagData.length){
+      flags.innerHTML=flagData.map(f=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--${f.c.slice(1)}-lt, var(--canvas));border:1px solid var(--rule);border-radius:8px"><span style="font-size:14px">${f.icon}</span><div><div style="font-size:12px;font-weight:600;color:var(--ink-900)">${f.t}</div><div style="font-size:11px;color:var(--ink-500)">${f.d}</div></div></div>`).join('');
+    } else {
+      flags.innerHTML='<div style="font-size:12px;color:var(--ink-300);font-style:italic">No patterns detected yet.</div>';
+    }
+  }
+}
+function resetLive(){
+  ['catBar0','catBar1','catBar2','catBar3','catBar4'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.width='0%';
+  });
+  ['catPct0','catPct1','catPct2','catPct3','catPct4'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='0%';
+  });
+  const s=document.getElementById('liveScore'); if(s) s.textContent='0.0';
+  const f=document.getElementById('liveScoreFill'); if(f){f.style.width='0%';}
+  const bf=document.getElementById('behavFlags'); if(bf) bf.innerHTML='<div style="font-size:12px;color:var(--ink-300);font-style:italic">No patterns detected yet.</div>';
+}
+
+// ─── INTERVENTIONS ────────────────────────────────
+function showIntervention(key){
+  const iv=INTERVENTIONS[key];
+  document.getElementById('ivIcon').textContent=iv.icon;
+  document.getElementById('ivTrigger').textContent=iv.trigger;
+  document.getElementById('ivTitle').textContent=iv.title;
+  document.getElementById('ivBody').textContent=iv.body;
+  const stepsEl=document.getElementById('ivSteps');
+  stepsEl.innerHTML=iv.steps.map((s,i)=>`<div class="iv-step"><div class="iv-step-num">${i+1}</div><div>${s}</div></div>`).join('');
+  document.getElementById('ivOverlay').classList.add('open');
+  document.getElementById('alertBadge').style.display='flex';
+}
+function closeIntervention(){
+  document.getElementById('ivOverlay').classList.remove('open');
+  showToast('⏸','Intervention Snoozed','MCAS will remind you again in 10 minutes.');
+}
+function acceptIntervention(){
+  document.getElementById('ivOverlay').classList.remove('open');
+  document.getElementById('alertBadge').style.display='none';
+  showToast('✓','Practice Complete','HRV recovery detected. Well done.');
+}
+
+// ─── TOAST ────────────────────────────────────────
+let toastTimeout;
+function showToast(icon, title, body){
+  clearTimeout(toastTimeout);
+  document.getElementById('toastIcon').textContent=icon;
+  document.getElementById('toastTitle').textContent=title;
+  document.getElementById('toastBody').textContent=body;
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  toastTimeout=setTimeout(()=>t.classList.remove('show'),4000);
+}
+</script>
+</body>
+</html>

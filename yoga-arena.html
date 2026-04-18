@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YogaArena — Body Intelligence Game Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200;1,9..144,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Azeret+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --canvas-bg:#F5F3EF;--canvas2:#EEECEA;--white:#FDFCFA;--panel:#F0EDE8;
+  --ink-900:#1C1B18;--ink-700:#3D3C37;--ink-500:#6B6960;--ink-300:#A8A69E;--ink-100:#DDD9D1;
+  --sage:#3D7A5F;--sage-mid:#5A9A7A;--sage-light:#E8F2ED;--sage-pale:#F2F8F5;
+  --slate:#3B5A8A;--slate-lt:#EBF0F8;
+  --amber:#9B6B1A;--amber-lt:#FBF4E6;
+  --red:#8B2E2E;--red-lt:#FBEAEA;
+  --plum:#6B3D7A;--plum-lt:#F3EDF8;
+  --teal:#2A7A7A;--teal-lt:#E6F4F4;
+  --rule:rgba(28,27,24,.08);--rule-mid:rgba(28,27,24,.13);
+  --display:'Fraunces',Georgia,serif;--body:'Plus Jakarta Sans',system-ui,sans-serif;--mono:'Azeret Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sh-sm:0 1px 3px rgba(28,27,24,.05),0 4px 14px rgba(28,27,24,.06);
+  --sh-md:0 2px 8px rgba(28,27,24,.07),0 12px 32px rgba(28,27,24,.09);
+  --sh-lg:0 4px 16px rgba(28,27,24,.08),0 24px 64px rgba(28,27,24,.12);
+  --sidebar:240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--canvas-bg);color:var(--ink-900);font-family:var(--body);font-size:14px;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* TOPNAV */
+.topnav{height:56px;background:var(--white);border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;z-index:100;position:relative}
+.tn-left{display:flex;align-items:center;gap:12px}
+.back-btn{display:flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);transition:color .2s}
+.back-btn:hover{color:var(--ink-700)}
+.tn-sep{width:1px;height:18px;background:var(--rule-mid)}
+.tn-name{font-family:var(--display);font-size:15px;font-weight:300;color:var(--ink-900);letter-spacing:-.1px}
+.tn-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);background:var(--canvas-bg);border:1px solid var(--rule);border-radius:100px;padding:3px 10px}
+.tn-right{display:flex;align-items:center;gap:10px}
+.tn-score{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--plum);background:var(--plum-lt);border:1px solid rgba(107,61,122,.15);border-radius:100px;padding:5px 12px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--plum-lt);border:1px solid rgba(107,61,122,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--plum)}
+
+/* LAYOUT */
+.app-body{display:flex;flex:1;overflow:hidden;position:relative;z-index:1}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--white);border-right:1px solid var(--rule);display:flex;flex-direction:column;overflow-y:auto}
+.sb-section{padding:20px 16px 8px;font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-300)}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-500);text-decoration:none;transition:background .15s,color .15s;border-left:2px solid transparent}
+.sb-link:hover{background:var(--canvas-bg);color:var(--ink-900)}
+.sb-link.active{background:var(--plum-lt);color:var(--plum);border-left-color:var(--plum)}
+.sb-icon{width:18px;height:18px;flex-shrink:0;opacity:.55}
+.sb-link.active .sb-icon{opacity:1}
+.sb-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--rule)}
+.sb-level{background:var(--plum-lt);border:1px solid rgba(107,61,122,.15);border-radius:10px;padding:12px}
+.sb-level-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--plum);margin-bottom:3px}
+.sb-level-val{font-size:13px;font-weight:600;color:var(--ink-900)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;background:var(--canvas-bg)}
+.page{display:none;padding:28px 32px;max-width:1100px}
+.page.active{display:block}
+.page-title{font-family:var(--display);font-size:28px;font-weight:200;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:4px}
+.page-sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-300);margin-bottom:28px}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:20px}
+.card-sm{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px}
+.clabel{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:12px;display:block}
+.cval{font-family:var(--display);font-size:36px;font-weight:200;letter-spacing:-.03em;line-height:1}
+.cunit{font-size:13px;opacity:.45;font-family:var(--body);margin-left:2px}
+.cdelta{font-family:var(--mono);font-size:10px;margin-top:6px}
+.d-up{color:var(--sage)}.d-dn{color:var(--red)}.d-n{color:var(--ink-300)}
+
+/* ── ARENA / GAME AREA ── */
+.arena-wrap{
+  display:grid;grid-template-columns:1fr 340px;gap:16px;
+  align-items:start;
+}
+@media(max-width:900px){.arena-wrap{grid-template-columns:1fr}}
+
+.camera-panel{
+  background:var(--ink-900);border-radius:20px;overflow:hidden;
+  position:relative;aspect-ratio:4/3;
+}
+.camera-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+.camera-canvas{position:absolute;inset:0;width:100%;height:100%}
+.camera-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+}
+.camera-placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;color:rgba(255,255,255,.5);
+}
+.camera-placeholder-icon{font-size:48px;opacity:.4}
+.camera-placeholder-text{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+
+/* HUD overlays */
+.hud-top{position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.hud-score{background:rgba(28,27,24,.6);backdrop-filter:blur(8px);border-radius:10px;padding:8px 14px;font-family:var(--mono)}
+.hud-score-val{font-size:18px;font-weight:400;color:var(--white);line-height:1}
+.hud-score-lbl{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:2px}
+.hud-pose{background:rgba(28,27,24,.6);backdrop-filter:blur(8px);border-radius:10px;padding:8px 14px;text-align:right;font-family:var(--mono)}
+.hud-pose-name{font-size:12px;color:var(--white)}
+.hud-pose-time{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:2px}
+
+.hud-bottom{position:absolute;bottom:16px;left:16px;right:16px;pointer-events:none}
+.accuracy-bar-wrap{background:rgba(28,27,24,.5);border-radius:100px;height:8px;overflow:hidden}
+.accuracy-bar-fill{height:100%;border-radius:100px;transition:width .3s,background .3s}
+.accuracy-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.35);margin-top:4px}
+
+.hud-feedback{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--display);font-size:42px;font-weight:200;
+  color:var(--white);text-shadow:0 2px 20px rgba(0,0,0,.5);
+  pointer-events:none;opacity:0;transition:opacity .3s;text-align:center;letter-spacing:-.02em;
+}
+.hud-feedback.show{opacity:1}
+
+/* Game controls */
+.game-controls{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.btn-start{background:var(--plum);color:var(--white);border:none;border-radius:100px;padding:11px 28px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;display:flex;align-items:center;gap:8px}
+.btn-start:hover{opacity:.88;transform:translateY(-1px)}
+.btn-start.stop{background:var(--red)}
+.btn-secondary{background:var(--white);color:var(--ink-700);border:1px solid var(--rule-mid);border-radius:100px;padding:10px 20px;font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;transition:border-color .2s}
+.btn-secondary:hover{border-color:var(--ink-300)}
+
+/* Side panel */
+.side-panel{display:flex;flex-direction:column;gap:12px}
+.pose-target-card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:20px}
+.pose-visual{width:100%;height:140px;background:var(--canvas-bg);border-radius:12px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:64px;margin-bottom:14px;position:relative;overflow:hidden}
+.pose-visual-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300)}
+.pose-name{font-family:var(--display);font-size:18px;font-weight:300;letter-spacing:-.01em;color:var(--ink-900);margin-bottom:4px}
+.pose-meta{font-size:12px;color:var(--ink-500);margin-bottom:12px}
+.pose-cues{display:flex;flex-direction:column;gap:6px}
+.pose-cue{display:flex;gap:8px;font-size:12px;color:var(--ink-700);line-height:1.5}
+.cue-dot{width:5px;height:5px;border-radius:50%;background:var(--plum);flex-shrink:0;margin-top:5px}
+
+/* Score breakdown */
+.score-card{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px}
+.score-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
+.score-lbl{width:90px;color:var(--ink-700)}
+.score-bar-wrap{flex:1;height:5px;background:var(--panel);border-radius:100px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:100px;transition:width .5s var(--ease)}
+.score-pct{font-family:var(--mono);font-size:10px;color:var(--ink-500);min-width:28px;text-align:right}
+
+/* ── GAME MODES ── */
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.mode-card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:22px;cursor:pointer;transition:transform .25s var(--ease),box-shadow .25s,background .2s;position:relative;overflow:hidden}
+.mode-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--mode-color,var(--plum));transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
+.mode-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md);background:var(--canvas-bg)}
+.mode-card:hover::before{transform:scaleX(1)}
+.mode-icon{font-size:32px;margin-bottom:14px;display:block}
+.mode-title{font-family:var(--display);font-size:17px;font-weight:300;letter-spacing:-.01em;color:var(--ink-900);margin-bottom:6px;line-height:1.2}
+.mode-desc{font-size:12px;color:var(--ink-500);line-height:1.6;margin-bottom:12px}
+.mode-tags{display:flex;gap:6px;flex-wrap:wrap}
+.mode-tag{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:100px;background:var(--canvas-bg);color:var(--ink-300);border:1px solid var(--rule)}
+.mode-diff{font-family:var(--mono);font-size:9px;margin-top:10px;color:var(--mode-color,var(--plum));letter-spacing:.08em}
+
+/* ── LEADERBOARD ── */
+.lb-row{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:var(--display);font-size:20px;font-weight:200;color:var(--ink-300);min-width:28px;line-height:1}
+.lb-rank.top{color:var(--amber)}
+.lb-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.lb-name{font-size:13px;font-weight:600;color:var(--ink-900)}
+.lb-sub{font-size:11px;color:var(--ink-500)}
+.lb-score{font-family:var(--display);font-size:22px;font-weight:200;color:var(--plum);margin-left:auto;letter-spacing:-.02em}
+.lb-badge{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:100px;background:var(--amber-lt);color:var(--amber);margin-left:8px}
+
+/* ── ACHIEVEMENTS ── */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.ach-card{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px;text-align:center;transition:box-shadow .2s}
+.ach-card:hover{box-shadow:var(--sh-sm)}
+.ach-icon{font-size:32px;margin-bottom:8px;display:block}
+.ach-title{font-size:12px;font-weight:600;color:var(--ink-900);margin-bottom:3px}
+.ach-sub{font-size:11px;color:var(--ink-500)}
+.ach-card.locked{opacity:.4;filter:grayscale(1)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--ink-900);color:var(--white);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh-lg);max-width:320px;transform:translateY(80px);opacity:0;transition:transform .4s var(--ease),opacity .4s}
+.toast.show{transform:translateY(0);opacity:1}
+.t-icon{font-size:18px;flex-shrink:0}
+.t-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.t-body{font-size:11px;color:rgba(255,255,255,.6)}
+
+@media(max-width:768px){.sidebar{display:none}.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+</style>
+  <meta property="og:title" content="YogaArena — Body Intelligence Game Engine · Dhyanly™"/>
+  <meta property="og:description" content="Real-time skeletal detection turns your yoga practice into an adaptive game. MediaPipe/PoseNet powered."/>
+  <meta property="og:url" content="https://yourusername.github.io/dhyanly/yoga-arena.html"/>
+  <meta name="twitter:title" content="YogaArena — Body Intelligence Game Engine · Dhyanly™"/>
+  <meta name="twitter:description" content="Real-time skeletal detection turns your yoga practice into an adaptive game. MediaPipe/PoseNet powered."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#1C1B18"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Dhyanly™"/>
+  <meta property="og:image" content="https://yourusername.github.io/dhyanly/favicon.svg"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:site" content="@yogaxbiofeedback"/>
+</head>
+<body>
+
+<!-- TOPNAV -->
+<div class="topnav">
+  <div class="tn-left">
+    <a href="index.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Dhyanly Suite
+    </a>
+    <div class="tn-sep"></div>
+    <span style="font-size:20px">🕹️</span>
+    <span class="tn-name">YogaArena</span>
+    <span class="tn-tag">Body Intelligence Game</span>
+  </div>
+  <div class="tn-right">
+    <div class="tn-score">🏆 2,840 pts</div>
+    <div class="avatar">ST</div>
+  </div>
+</div>
+
+<div class="app-body">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-section">Play</div>
+  <a class="sb-link active" onclick="showPage('arena',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.3"/><polygon points="7,6 13,9 7,12" fill="currentColor" opacity=".6"/></svg>
+    Live Arena
+  </a>
+  <a class="sb-link" onclick="showPage('modes',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+    Game Modes
+  </a>
+  <div class="sb-section">Progress</div>
+  <a class="sb-link" onclick="showPage('scores',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><polyline points="2,14 6,8 10,11 14,4 16,6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    My Scores
+  </a>
+  <a class="sb-link" onclick="showPage('achievements',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><path d="M9 2l1.8 3.6 4 .6-2.9 2.8.7 3.9L9 11l-3.6 1.9.7-3.9L3.2 6.2l4-.6L9 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+    Achievements
+  </a>
+  <a class="sb-link" onclick="showPage('leaderboard',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="7" y="2" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="6" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="12" y="4" width="4" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+    Leaderboard
+  </a>
+  <div class="sb-section">Settings</div>
+  <a class="sb-link" onclick="showPage('settings',this)">
+    <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M9 1.5v1.5M9 15v1.5M1.5 9H3M15 9h1.5M3.7 3.7l1 1M13.3 13.3l1 1M3.7 14.3l1-1M13.3 4.7l1-1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    Settings
+  </a>
+  <div class="sb-bottom">
+    <div class="sb-level">
+      <div class="sb-level-lbl">Current Level</div>
+      <div class="sb-level-val">Intermediate · Level 7</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ══ LIVE ARENA ══ -->
+<div class="page active" id="page-arena">
+  <div class="page-title">Live Arena</div>
+  <div class="page-sub">MediaPipe PoseNet · Real-time skeletal tracking</div>
+
+  <div class="arena-wrap">
+    <!-- Camera + game area -->
+    <div>
+      <div class="camera-panel" id="cameraPanel">
+        <video id="gameVideo" class="camera-video" autoplay muted playsinline style="display:none"></video>
+        <canvas id="poseCanvas" class="camera-canvas" style="display:none"></canvas>
+
+        <!-- Placeholder (before camera start) -->
+        <div class="camera-placeholder" id="cameraPlaceholder">
+          <div class="camera-placeholder-icon">📷</div>
+          <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);text-align:center;line-height:1.8">
+            Camera not active<br>
+            <span style="opacity:.5">Press Start to begin</span>
+          </div>
+        </div>
+
+        <!-- HUD (shown during game) -->
+        <div class="hud-top" id="hud" style="display:none">
+          <div class="hud-score">
+            <div class="hud-score-val" id="hudScore">0</div>
+            <div class="hud-score-lbl">Score</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="hud-score" style="text-align:center">
+              <div class="hud-score-val" id="hudCombo" style="color:#C9A96E">×1</div>
+              <div class="hud-score-lbl">Combo</div>
+            </div>
+            <div class="hud-score" style="text-align:center">
+              <div class="hud-score-val" id="hudTimer">0:00</div>
+              <div class="hud-score-lbl">Time</div>
+            </div>
+          </div>
+          <div class="hud-pose">
+            <div class="hud-pose-name" id="hudPoseName">Tadasana</div>
+            <div class="hud-pose-time" id="hudHoldTime">Hold: 0s</div>
+          </div>
+        </div>
+
+        <div class="hud-feedback" id="hudFeedback">Perfect!</div>
+
+        <div class="hud-bottom" id="hudBottom" style="display:none">
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.5);margin-bottom:5px">
+            <span>Pose Accuracy</span>
+            <span id="hudAccPct">0%</span>
+          </div>
+          <div class="accuracy-bar-wrap">
+            <div class="accuracy-bar-fill" id="accBar" style="width:0%;background:var(--sage)"></div>
+          </div>
+          <div class="accuracy-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="game-controls">
+        <button class="btn-start" id="startBtn" onclick="toggleGame()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,2 12,7 3,12" fill="currentColor"/></svg>
+          Start Game
+        </button>
+        <button class="btn-secondary" id="nextPoseBtn" onclick="nextPose()" style="display:none">Next Pose →</button>
+        <button class="btn-secondary" onclick="showPage('modes',document.querySelectorAll('.sb-link')[1])">Change Mode</button>
+        <div style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ink-300)" id="modeLabel">Mode: Asana Flow · Beginner</div>
+      </div>
+
+      <!-- Post-game result (hidden until game ends) -->
+      <div id="resultCard" style="display:none;margin-top:14px">
+        <div class="card" style="background:linear-gradient(135deg,var(--plum-lt),var(--white));border-color:rgba(107,61,122,.15)">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--plum);margin-bottom:10px">Session Complete</div>
+          <div class="grid-4" style="margin-bottom:16px">
+            <div style="text-align:center"><div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--plum)" id="resFinalScore">0</div><div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Final Score</div></div>
+            <div style="text-align:center"><div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--sage)" id="resPoses">0</div><div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Poses Done</div></div>
+            <div style="text-align:center"><div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--amber)" id="resAccuracy">0%</div><div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Avg Accuracy</div></div>
+            <div style="text-align:center"><div style="font-family:var(--display);font-size:28px;font-weight:200;color:var(--slate)" id="resCombo">×1</div><div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:3px">Best Combo</div></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button onclick="toggleGame()" class="btn-start" style="background:var(--plum)">Play Again</button>
+            <button onclick="showPage('scores',document.querySelectorAll('.sb-link')[2])" class="btn-secondary">View Stats</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="side-panel">
+      <!-- Target pose -->
+      <div class="pose-target-card">
+        <span class="clabel">Target Pose</span>
+        <div class="pose-visual" id="poseVisual">
+          <span id="poseEmoji" style="font-size:64px">🧘</span>
+          <div class="pose-visual-label" id="poseSanskrit">Tadasana</div>
+        </div>
+        <div class="pose-name" id="poseName">Mountain Pose</div>
+        <div class="pose-meta" id="poseMeta">Hold for 5 seconds · Beginner</div>
+        <div class="pose-cues" id="poseCues"></div>
+      </div>
+
+      <!-- Score breakdown -->
+      <div class="score-card">
+        <span class="clabel">Live Score Breakdown</span>
+        <div class="score-row"><span class="score-lbl">Alignment</span><div class="score-bar-wrap"><div class="score-bar-fill" id="scoreAlign" style="width:0%;background:var(--sage)"></div></div><span class="score-pct" id="scoreAlignPct">0%</span></div>
+        <div class="score-row"><span class="score-lbl">Balance</span><div class="score-bar-wrap"><div class="score-bar-fill" id="scoreBalance" style="width:0%;background:var(--slate)"></div></div><span class="score-pct" id="scoreBalancePct">0%</span></div>
+        <div class="score-row"><span class="score-lbl">Hold Time</span><div class="score-bar-wrap"><div class="score-bar-fill" id="scoreHold" style="width:0%;background:var(--amber)"></div></div><span class="score-pct" id="scoreHoldPct">0%</span></div>
+        <div class="score-row" style="margin-bottom:0"><span class="score-lbl">Flow</span><div class="score-bar-wrap"><div class="score-bar-fill" id="scoreFlow" style="width:0%;background:var(--plum)"></div></div><span class="score-pct" id="scoreFlowPct">0%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAME MODES ══ -->
+<div class="page" id="page-modes">
+  <div class="page-title">Game Modes</div>
+  <div class="page-sub">Choose your challenge · All modes use real-time pose detection</div>
+
+  <div class="mode-grid" id="modeGrid"></div>
+</div>
+
+<!-- ══ MY SCORES ══ -->
+<div class="page" id="page-scores">
+  <div class="page-title">My Scores</div>
+  <div class="page-sub">Personal analytics · Session history</div>
+
+  <div class="grid-4" style="margin-bottom:14px">
+    <div class="card-sm"><span class="clabel">Total Sessions</span><div class="cval">34</div><div class="cdelta d-up">↑ 6 this week</div></div>
+    <div class="card-sm"><span class="clabel">High Score</span><div class="cval" style="color:var(--plum)">4,280</div><div class="cdelta d-n">Surya Flow</div></div>
+    <div class="card-sm"><span class="clabel">Best Accuracy</span><div class="cval" style="color:var(--sage)">94<span class="cunit">%</span></div><div class="cdelta d-up">Tadasana</div></div>
+    <div class="card-sm"><span class="clabel">Practice Time</span><div class="cval" style="color:var(--slate)">12<span class="cunit">h</span></div><div class="cdelta d-up">This month</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <span class="clabel">Score History — Last 10 Sessions</span>
+    <canvas id="scoreGraph" height="90" style="width:100%;display:block;margin-top:4px"></canvas>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:6px" id="scoreLabels"></div>
+  </div>
+
+  <div class="card">
+    <span class="clabel">Pose Mastery</span>
+    <div id="poseMastery"></div>
+  </div>
+</div>
+
+<!-- ══ ACHIEVEMENTS ══ -->
+<div class="page" id="page-achievements">
+  <div class="page-title">Achievements</div>
+  <div class="page-sub">Milestones earned through consistent practice</div>
+  <div class="ach-grid" id="achGrid"></div>
+</div>
+
+<!-- ══ LEADERBOARD ══ -->
+<div class="page" id="page-leaderboard">
+  <div class="page-title">Leaderboard</div>
+  <div class="page-sub">Global rankings · This month</div>
+
+  <div class="lib-filters" id="lbFilters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px"></div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div id="lbTable"></div>
+  </div>
+
+  <div class="card" style="background:var(--plum-lt);border-color:rgba(107,61,122,.15)">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--plum);margin-bottom:6px">Your Ranking</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-family:var(--display);font-size:36px;font-weight:200;color:var(--plum)">#18</div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--ink-900)">Satyam T.</div><div style="font-size:12px;color:var(--ink-500)">2,840 pts · 34 sessions · Intermediate</div></div>
+      <div style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--plum)">↑ 5 places this week</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="page" id="page-settings">
+  <div class="page-title">Settings</div>
+  <div class="page-sub">Camera · Difficulty · Feedback</div>
+
+  <div class="card" style="margin-bottom:14px">
+    <span class="clabel">Detection</span>
+    <div id="detectSettings"></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <span class="clabel">Gameplay</span>
+    <div id="gameSettings"></div>
+  </div>
+  <div class="card">
+    <span class="clabel">Feedback</span>
+    <div id="feedbackSettings"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app-body -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="t-icon" id="tIcon">✓</span>
+  <div><div class="t-title" id="tTitle"></div><div class="t-body" id="tBody"></div></div>
+</div>
+
+<script>
+// ── PAGE NAV ──────────────────────────────────────────
+function showPage(id,link){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(link) link.classList.add('active');
+  if(id==='scores') setTimeout(drawScores,60);
+}
+
+// ── TOAST ─────────────────────────────────────────────
+let toastT;
+function showToast(icon,title,body){
+  clearTimeout(toastT);
+  document.getElementById('tIcon').textContent=icon;
+  document.getElementById('tTitle').textContent=title;
+  document.getElementById('tBody').textContent=body;
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  toastT=setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ── POSES DATA ────────────────────────────────────────
+const POSES=[
+  {emoji:'🧘',sanskrit:'Tadasana',name:'Mountain Pose',meta:'Hold 5 seconds · Foundation',
+   cues:['Stand tall — feet hip-width apart','Shoulders relaxed, arms at sides','Crown of head reaching upward','Weight evenly distributed through both feet']},
+  {emoji:'🌳',sanskrit:'Vrikshasana',name:'Tree Pose',meta:'Hold 5 seconds · Balance',
+   cues:['Press one foot into inner thigh','Knee of lifted leg pointing out','Both hip points facing forward','Hands at heart centre or raised']},
+  {emoji:'🦢',sanskrit:'Paschimottanasana',name:'Seated Forward Fold',meta:'Hold 5 seconds · Flexibility',
+   cues:['Hinge from the hips, not the waist','Spine long before folding forward','Reach toward feet without rounding','Breathe into the back body']},
+  {emoji:'🌅',sanskrit:'Virabhadrasana I',name:'Warrior I',meta:'Hold 5 seconds · Strength',
+   cues:['Front knee directly over ankle','Back heel grounded at 45°','Hips square to the front','Arms reaching strongly overhead']},
+  {emoji:'🦅',sanskrit:'Garudasana',name:'Eagle Pose',meta:'Hold 5 seconds · Concentration',
+   cues:['Cross one leg over the other','Wrap arms at elbow level','Sink hips toward floor','Gaze at a single fixed point']},
+  {emoji:'🌊',sanskrit:'Balasana',name:'Child\'s Pose',meta:'Hold 5 seconds · Rest',
+   cues:['Knees wide or together','Arms extended forward or alongside body','Forehead resting on the mat','Breathe into the lower back']},
+  {emoji:'🔥',sanskrit:'Chaturanga',name:'Four-Limbed Staff',meta:'Hold 3 seconds · Strength',
+   cues:['Body in one straight line','Elbows close to the body','Shoulders no lower than elbows','Core engaged throughout']},
+  {emoji:'🐍',sanskrit:'Bhujangasana',name:'Cobra Pose',meta:'Hold 5 seconds · Backbend',
+   cues:['Hands under shoulders','Elbows close to body','Lift from the sternum','Keep lower ribs on the mat']},
+];
+
+let currentPoseIdx=0;
+function loadPose(idx){
+  const p=POSES[idx];
+  document.getElementById('poseEmoji').textContent=p.emoji;
+  document.getElementById('poseSanskrit').textContent=p.sanskrit;
+  document.getElementById('poseName').textContent=p.name;
+  document.getElementById('poseMeta').textContent=p.meta;
+  const cues=document.getElementById('poseCues');
+  cues.innerHTML=p.cues.map(c=>`<div class="pose-cue"><div class="cue-dot"></div><div>${c}</div></div>`).join('');
+}
+loadPose(0);
+
+function nextPose(){
+  currentPoseIdx=(currentPoseIdx+1)%POSES.length;
+  loadPose(currentPoseIdx);
+  holdTime=0; poseScore=0;
+  document.getElementById('hudPoseName').textContent=POSES[currentPoseIdx].sanskrit;
+}
+
+// ── GAME ENGINE ───────────────────────────────────────
+let gameRunning=false;
+let gameInterval,scoreInterval;
+let score=0,combo=1,bestCombo=1,holdTime=0,poseScore=0;
+let sessionSec=0,posesCompleted=0,accTotal=0,accCount=0;
+const GAME_DURATION=90; // seconds
+
+// Simulated pose scores (realistic fluctuation)
+function getSimScore(){
+  const base=62+Math.random()*30;
+  return Math.min(99,Math.max(20,base+Math.sin(Date.now()/1200)*12));
+}
+
+function toggleGame(){
+  if(gameRunning){ endGame(); return; }
+  startGame();
+}
+
+function startGame(){
+  // Request camera
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}})
+    .then(stream=>{
+      const video=document.getElementById('gameVideo');
+      video.srcObject=stream;
+      video.style.display='block';
+      document.getElementById('poseCanvas').style.display='block';
+      document.getElementById('cameraPlaceholder').style.display='none';
+      startGameLoop();
+    })
+    .catch(()=>{
+      // Camera denied — run in demo mode with placeholder
+      document.getElementById('cameraPlaceholder').innerHTML=`
+        <div style="font-size:36px;opacity:.5">📷</div>
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);text-align:center;line-height:1.8">Demo Mode<br><span style="opacity:.5">Camera permission not granted</span></div>`;
+      startGameLoop();
+    });
+}
+
+function startGameLoop(){
+  gameRunning=true;
+  score=0;combo=1;bestCombo=1;holdTime=0;poseScore=0;
+  sessionSec=0;posesCompleted=0;accTotal=0;accCount=0;
+  currentPoseIdx=0;
+  loadPose(0);
+
+  const startBtn=document.getElementById('startBtn');
+  startBtn.classList.add('stop');
+  startBtn.innerHTML=`<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="8" y="2" width="3" height="10" rx="1" fill="currentColor"/></svg> Stop`;
+  document.getElementById('nextPoseBtn').style.display='inline-flex';
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('hudBottom').style.display='block';
+  document.getElementById('resultCard').style.display='none';
+
+  // Start drawing loop
+  drawLoop();
+
+  gameInterval=setInterval(()=>{
+    sessionSec++;
+    // Simulate accuracy score
+    const acc=getSimScore();
+    accTotal+=acc; accCount++;
+    poseScore=acc;
+    holdTime++;
+
+    // Update accuracy bar
+    const bar=document.getElementById('accBar');
+    const pct=document.getElementById('hudAccPct');
+    bar.style.width=acc+'%';
+    bar.style.background=acc>80?'#3D7A5F':acc>50?'#9B6B1A':'#8B2E2E';
+    pct.textContent=Math.round(acc)+'%';
+
+    // Update score breakdown
+    const align=Math.min(99,acc+Math.random()*8-4);
+    const balance=Math.min(99,acc+Math.random()*10-5);
+    const hold=Math.min(99,(holdTime/5)*100);
+    const flow=Math.min(99,((score/200)*100));
+    updateBreakdown(align,balance,Math.min(100,hold),flow);
+
+    // Score ticking
+    if(acc>75){
+      const pts=Math.round((acc/100)*combo*10);
+      score+=pts;
+      combo=Math.min(8,combo+0.1);
+      bestCombo=Math.max(bestCombo,Math.round(combo));
+    } else if(acc<40){
+      combo=Math.max(1,combo-0.3);
+    }
+
+    // Pose completion
+    if(holdTime>=5 && acc>70){
+      posesCompleted++;
+      flashFeedback(acc>90?'Perfect! ✨':acc>80?'Great! 🔥':'Good 👍');
+      score+=Math.round(100*combo);
+      nextPose();
+    }
+
+    // Update HUD
+    document.getElementById('hudScore').textContent=score.toLocaleString();
+    document.getElementById('hudCombo').textContent='×'+Math.round(combo);
+    document.getElementById('hudHoldTime').textContent='Hold: '+holdTime+'s';
+    const m=Math.floor(sessionSec/60),s=sessionSec%60;
+    document.getElementById('hudTimer').textContent=m+':'+String(s).padStart(2,'0');
+
+    if(sessionSec>=GAME_DURATION) endGame();
+  },1000);
+}
+
+function updateBreakdown(align,balance,hold,flow){
+  [['scoreAlign','scoreAlignPct',align,'var(--sage)'],
+   ['scoreBalance','scoreBalancePct',balance,'var(--slate)'],
+   ['scoreHold','scoreHoldPct',hold,'var(--amber)'],
+   ['scoreFlow','scoreFlowPct',flow,'var(--plum)']].forEach(([barId,pctId,val,color])=>{
+    const b=document.getElementById(barId);
+    const p=document.getElementById(pctId);
+    if(b){ b.style.width=val+'%'; b.style.background=color; }
+    if(p) p.textContent=Math.round(val)+'%';
+  });
+}
+
+let feedbackTimeout;
+function flashFeedback(text){
+  const el=document.getElementById('hudFeedback');
+  el.textContent=text;
+  el.classList.add('show');
+  clearTimeout(feedbackTimeout);
+  feedbackTimeout=setTimeout(()=>el.classList.remove('show'),1200);
+}
+
+function endGame(){
+  gameRunning=false;
+  clearInterval(gameInterval);
+  cancelAnimationFrame(animFrame);
+
+  const startBtn=document.getElementById('startBtn');
+  startBtn.classList.remove('stop');
+  startBtn.innerHTML=`<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,2 12,7 3,12" fill="currentColor"/></svg> Start Game`;
+  document.getElementById('nextPoseBtn').style.display='none';
+  document.getElementById('hud').style.display='none';
+  document.getElementById('hudBottom').style.display='none';
+
+  // Stop camera
+  const video=document.getElementById('gameVideo');
+  if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
+  video.style.display='none';
+  document.getElementById('poseCanvas').style.display='none';
+  document.getElementById('cameraPlaceholder').style.display='flex';
+  document.getElementById('cameraPlaceholder').innerHTML=`<div class="camera-placeholder-icon">📷</div><div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);text-align:center;line-height:1.8">Camera not active<br><span style="opacity:.5">Press Start to begin</span></div>`;
+
+  // Show results
+  const avgAcc=accCount>0?Math.round(accTotal/accCount):0;
+  document.getElementById('resFinalScore').textContent=score.toLocaleString();
+  document.getElementById('resPoses').textContent=posesCompleted;
+  document.getElementById('resAccuracy').textContent=avgAcc+'%';
+  document.getElementById('resCombo').textContent='×'+bestCombo;
+  document.getElementById('resultCard').style.display='block';
+
+  // Reset bars
+  updateBreakdown(0,0,0,0);
+  showToast('🏆','Session Complete','Score: '+score.toLocaleString()+' · '+posesCompleted+' poses · '+avgAcc+'% accuracy');
+}
+
+// ── CANVAS SKELETON DRAW ──────────────────────────────
+let animFrame;
+function drawLoop(){
+  const canvas=document.getElementById('poseCanvas');
+  const video=document.getElementById('gameVideo');
+  canvas.width=canvas.offsetWidth;
+  canvas.height=canvas.offsetHeight;
+  const ctx=canvas.getContext('2d');
+
+  function draw(){
+    if(!gameRunning) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Draw simulated skeleton (no actual ML in browser demo — shows the skeleton overlay system)
+    const W=canvas.width, H=canvas.height;
+    const cx=W/2, cy=H/2;
+    const jitter=()=>(Math.random()-0.5)*6;
+    const t=Date.now()/800;
+
+    // Key points (normalised to canvas)
+    const pts={
+      nose:    [cx+jitter(), cy-H*0.3+jitter()],
+      lShoulder:[cx-W*0.12+jitter(), cy-H*0.12+jitter()],
+      rShoulder:[cx+W*0.12+jitter(), cy-H*0.12+jitter()],
+      lElbow:  [cx-W*0.18+jitter(), cy+H*0.02+jitter()],
+      rElbow:  [cx+W*0.18+jitter(), cy+H*0.02+jitter()],
+      lWrist:  [cx-W*0.18+jitter(), cy+H*0.12+Math.sin(t)*12],
+      rWrist:  [cx+W*0.18+jitter(), cy+H*0.12+Math.sin(t+1)*12],
+      lHip:    [cx-W*0.08+jitter(), cy+H*0.08+jitter()],
+      rHip:    [cx+W*0.08+jitter(), cy+H*0.08+jitter()],
+      lKnee:   [cx-W*0.09+jitter(), cy+H*0.25+jitter()],
+      rKnee:   [cx+W*0.09+jitter(), cy+H*0.25+jitter()],
+      lAnkle:  [cx-W*0.08+jitter(), cy+H*0.4+jitter()],
+      rAnkle:  [cx+W*0.08+jitter(), cy+H*0.4+jitter()],
+    };
+
+    const acc=getSimScore()/100;
+    const skeletonColor=acc>0.8?'rgba(61,200,130,0.85)':acc>0.5?'rgba(200,160,60,0.85)':'rgba(200,80,80,0.85)';
+
+    const connections=[
+      ['lShoulder','rShoulder'],['lShoulder','lElbow'],['lElbow','lWrist'],
+      ['rShoulder','rElbow'],['rElbow','rWrist'],
+      ['lShoulder','lHip'],['rShoulder','rHip'],['lHip','rHip'],
+      ['lHip','lKnee'],['lKnee','lAnkle'],['rHip','rKnee'],['rKnee','rAnkle'],
+    ];
+
+    ctx.strokeStyle=skeletonColor; ctx.lineWidth=3; ctx.lineCap='round';
+    connections.forEach(([a,b])=>{
+      if(!pts[a]||!pts[b]) return;
+      ctx.beginPath(); ctx.moveTo(pts[a][0],pts[a][1]); ctx.lineTo(pts[b][0],pts[b][1]); ctx.stroke();
+    });
+
+    // Keypoint dots
+    Object.entries(pts).forEach(([key,pos])=>{
+      ctx.beginPath(); ctx.arc(pos[0],pos[1],5,0,Math.PI*2);
+      ctx.fillStyle=skeletonColor; ctx.fill();
+      ctx.beginPath(); ctx.arc(pos[0],pos[1],3,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fill();
+    });
+
+    animFrame=requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── GAME MODES ────────────────────────────────────────
+const MODES=[
+  {emoji:'🌅',title:'Surya Namaskar Flow',desc:'Complete full Sun Salutation sequences. Each round earns bonus points. Maintain flow and the multiplier builds.',tags:['12 poses/round','Flow scoring','Combo system'],diff:'Beginner · Intermediate',color:'var(--amber)'},
+  {emoji:'🎯',title:'Pose Challenge',desc:'Random poses are called out one by one. Hold each correctly for the required time. Miss too many and the game ends.',tags:['Random selection','Timed holds','Lives system'],diff:'All Levels',color:'var(--sage)'},
+  {emoji:'⏱️',title:'Speed Run',desc:'Complete as many poses as possible in 60 seconds. Accuracy still matters — sloppy poses score less. Pure intensity.',tags:['60 second limit','Speed bonus','Accuracy matters'],diff:'Advanced',color:'var(--red)'},
+  {emoji:'🧘',title:'Zen Mode',desc:'Slow, meditative practice. Each pose held for 30–60 seconds. Score based purely on depth of alignment and stillness.',tags:['Long holds','Stillness score','No time pressure'],diff:'Beginner · Meditative',color:'var(--slate)'},
+  {emoji:'🌙',title:'Chandra Flow',desc:'Moon Salutation sequence. Calming, lateral movements. Designed for evening practice with lower intensity scoring.',tags:['Evening practice','Calming sequence','Svara integrated'],diff:'Beginner · Intermediate',color:'var(--plum)'},
+  {emoji:'💪',title:'Fitness Circuit',desc:'Traditional fitness exercises detected by the pose engine — squats, lunges, push-ups, planks. Full body conditioning.',tags:['Reps counting','Form detection','Cardio + strength'],diff:'Intermediate · Advanced',color:'var(--teal)'},
+];
+(function buildModes(){
+  const grid=document.getElementById('modeGrid');
+  if(!grid) return;
+  MODES.forEach(m=>{
+    const card=document.createElement('div');
+    card.className='mode-card';
+    card.style.setProperty('--mode-color',m.color);
+    card.innerHTML=`<span class="mode-icon">${m.emoji}</span>
+      <div class="mode-title">${m.title}</div>
+      <div class="mode-desc">${m.desc}</div>
+      <div class="mode-tags">${m.tags.map(t=>`<span class="mode-tag">${t}</span>`).join('')}</div>
+      <div class="mode-diff">${m.diff}</div>`;
+    card.onclick=()=>{
+      document.getElementById('modeLabel').textContent='Mode: '+m.title;
+      showPage('arena',document.querySelectorAll('.sb-link')[0]);
+      showToast(m.emoji,'Mode Selected',m.title+' — press Start to begin.');
+    };
+    grid.appendChild(card);
+  });
+})();
+
+// ── SCORES PAGE ───────────────────────────────────────
+function drawScores(){
+  const c=document.getElementById('scoreGraph');
+  if(!c) return;
+  c.width=c.parentElement.offsetWidth*2; c.height=90*2;
+  const ctx=c.getContext('2d'); const W=c.width,H=c.height,pad=16;
+  const data=[820,1100,950,1400,1200,1800,2100,1950,2600,2840];
+  const max=Math.max(...data);
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(28,27,24,.06)';ctx.lineWidth=1;
+  [0,.5,1].forEach(t=>{ const y=pad+(1-t)*(H-pad*2); ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke(); });
+  ctx.beginPath();
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-v/max)*(H-pad*2); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(pad+(data.length-1)*(W-pad*2)/(data.length-1),H-pad); ctx.lineTo(pad,H-pad); ctx.closePath();
+  ctx.fillStyle='rgba(107,61,122,.12)'; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle='#6B3D7A'; ctx.lineWidth=3; ctx.lineJoin='round';
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-v/max)*(H-pad*2); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-v/max)*(H-pad*2); ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#6B3D7A';ctx.fill();ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='#FDFCFA';ctx.fill(); });
+  const lbl=document.getElementById('scoreLabels');
+  if(lbl){ lbl.innerHTML=''; ['S1','S2','S3','S4','S5','S6','S7','S8','S9','S10'].forEach(w=>{ const s=document.createElement('span');s.textContent=w;lbl.appendChild(s); }); }
+
+  // Pose mastery
+  const pm=document.getElementById('poseMastery');
+  if(pm && !pm.children.length){
+    const poses=[{name:'Tadasana',pct:92,col:'var(--sage)'},{name:'Vrikshasana',pct:78,col:'var(--slate)'},{name:'Virabhadrasana',pct:65,col:'var(--amber)'},{name:'Bhujangasana',pct:55,col:'var(--plum)'},{name:'Garudasana',pct:40,col:'var(--teal)'}];
+    poses.forEach(p=>{ pm.innerHTML+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px"><span style="width:130px;color:var(--ink-700)">${p.name}</span><div style="flex:1;height:6px;background:var(--panel);border-radius:100px;overflow:hidden"><div style="width:${p.pct}%;height:100%;background:${p.col};border-radius:100px"></div></div><span style="font-family:var(--mono);font-size:10px;color:var(--ink-500);min-width:32px;text-align:right">${p.pct}%</span></div>`; });
+  }
+}
+
+// ── ACHIEVEMENTS ──────────────────────────────────────
+const ACHS=[
+  {emoji:'🌅',title:'First Flow',sub:'Complete first session',locked:false},
+  {emoji:'🔥',title:'On Fire',sub:'5× combo maintained',locked:false},
+  {emoji:'🎯',title:'Precision',sub:'90%+ accuracy session',locked:false},
+  {emoji:'⚡',title:'Speed Demon',sub:'Speed Run complete',locked:false},
+  {emoji:'🧘',title:'Stillness',sub:'30s Tadasana hold',locked:false},
+  {emoji:'🌙',title:'Moon Walker',sub:'Chandra flow complete',locked:false},
+  {emoji:'🏆',title:'Arena Master',sub:'Score 4,000+',locked:false},
+  {emoji:'💎',title:'Diamond Form',sub:'100% accuracy pose',locked:true},
+  {emoji:'🌟',title:'Guru',sub:'Level 10 reached',locked:true},
+  {emoji:'🔮',title:'Inner Eye',sub:'30-day streak',locked:true},
+  {emoji:'🦋',title:'Transformation',sub:'100 sessions played',locked:true},
+  {emoji:'🌍',title:'Top 10',sub:'Global leaderboard top 10',locked:true},
+];
+(function buildAch(){
+  const grid=document.getElementById('achGrid');
+  if(!grid) return;
+  ACHS.forEach(a=>{
+    const card=document.createElement('div');
+    card.className='ach-card'+(a.locked?' locked':'');
+    card.innerHTML=`<span class="ach-icon">${a.emoji}</span><div class="ach-title">${a.title}</div><div class="ach-sub">${a.sub}</div>`;
+    if(!a.locked) card.onclick=()=>showToast(a.emoji,'Achievement: '+a.title,a.sub);
+    grid.appendChild(card);
+  });
+})();
+
+// ── LEADERBOARD ───────────────────────────────────────
+const LB_DATA=[
+  {rank:1,initials:'AK',bg:'var(--amber-lt)',color:'var(--amber)',name:'Arjun K.',sub:'Advanced · 62 sessions',score:8420,badge:'🏆'},
+  {rank:2,initials:'RS',bg:'var(--sage-light)',color:'var(--sage)',name:'Riya S.',sub:'Advanced · 58 sessions',score:7980,badge:''},
+  {rank:3,initials:'VB',bg:'var(--slate-lt)',color:'var(--slate)',name:'Vikram B.',sub:'Intermediate · 45 sessions',score:6540,badge:''},
+  {rank:4,initials:'PM',bg:'var(--plum-lt)',color:'var(--plum)',name:'Priya M.',sub:'Intermediate · 41 sessions',score:5230,badge:''},
+  {rank:5,initials:'DT',bg:'var(--teal-lt)',color:'var(--teal)',name:'Dev T.',sub:'Intermediate · 38 sessions',score:4810,badge:''},
+  {rank:6,initials:'NR',bg:'var(--canvas2)',color:'var(--ink-500)',name:'Neha R.',sub:'Beginner · 29 sessions',score:3920,badge:''},
+];
+const LB_FILTERS=['All Modes','Surya Flow','Pose Challenge','Speed Run','Zen Mode'];
+(function buildLB(){
+  const filt=document.getElementById('lbFilters');
+  if(filt) LB_FILTERS.forEach((f,i)=>{ const d=document.createElement('div'); d.style.cssText=`font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:100px;border:1px solid var(--rule);background:${i===0?'var(--plum)':'var(--white)'};color:${i===0?'var(--white)':'var(--ink-300)'};cursor:pointer;transition:all .2s`; d.textContent=f; d.onclick=()=>{ document.querySelectorAll('#lbFilters div').forEach(b=>{b.style.background='var(--white)';b.style.color='var(--ink-300)'}); d.style.background='var(--plum)'; d.style.color='var(--white)'; }; filt.appendChild(d); });
+  const table=document.getElementById('lbTable');
+  if(!table) return;
+  LB_DATA.forEach(p=>{ table.innerHTML+=`<div class="lb-row"><div class="lb-rank ${p.rank<=3?'top':''}">${p.rank}</div><div class="lb-avatar" style="background:${p.bg};color:${p.color}">${p.initials}</div><div><div class="lb-name">${p.name} ${p.badge}</div><div class="lb-sub">${p.sub}</div></div><div class="lb-score">${p.score.toLocaleString()}</div></div>`; });
+})();
+
+// ── SETTINGS ──────────────────────────────────────────
+(function buildSettings(){
+  const detect=[
+    {label:'Detection Model',sub:'Pose estimation accuracy vs speed',ctrl:`<select style="font-family:var(--body);font-size:12px;color:var(--ink-700);background:var(--canvas-bg);border:1px solid var(--rule);border-radius:8px;padding:6px 10px;cursor:pointer"><option>MoveNet Lightning (Fast)</option><option selected>MoveNet Thunder (Accurate)</option><option>BlazePose (Full body)</option></select>`},
+    {label:'Frame Rate',sub:'Capture rate for analysis',ctrl:`<select style="font-family:var(--body);font-size:12px;color:var(--ink-700);background:var(--canvas-bg);border:1px solid var(--rule);border-radius:8px;padding:6px 10px;cursor:pointer"><option>15 fps</option><option selected>30 fps</option><option>60 fps</option></select>`},
+    {label:'Skeleton Display',sub:'Show pose overlay on camera feed',ctrl:`<label style="position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer;display:inline-block"><input type="checkbox" checked style="opacity:0;position:absolute"><div style="position:absolute;inset:0;background:var(--sage);border-radius:100px"></div><div style="position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></label>`},
+  ];
+  const game=[
+    {label:'Difficulty',sub:'Accuracy threshold required for pose credit',ctrl:`<select style="font-family:var(--body);font-size:12px;color:var(--ink-700);background:var(--canvas-bg);border:1px solid var(--rule);border-radius:8px;padding:6px 10px;cursor:pointer"><option>Easy (60%)</option><option selected>Normal (75%)</option><option>Hard (85%)</option><option>Elite (95%)</option></select>`},
+    {label:'Session Duration',sub:'Default game length',ctrl:`<select style="font-family:var(--body);font-size:12px;color:var(--ink-700);background:var(--canvas-bg);border:1px solid var(--rule);border-radius:8px;padding:6px 10px;cursor:pointer"><option>1 minute</option><option selected>90 seconds</option><option>3 minutes</option><option>5 minutes</option></select>`},
+    {label:'Mirror Camera',sub:'Flip the camera horizontally',ctrl:`<label style="position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer;display:inline-block"><input type="checkbox" checked style="opacity:0;position:absolute"><div style="position:absolute;inset:0;background:var(--sage);border-radius:100px"></div><div style="position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></label>`},
+  ];
+  const feedback=[
+    {label:'Voice Cues',sub:'Audio guidance for pose alignment',ctrl:`<label style="position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer;display:inline-block"><input type="checkbox" style="opacity:0;position:absolute"><div style="position:absolute;inset:0;background:var(--ink-100);border-radius:100px"></div><div style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></label>`},
+    {label:'Haptic Feedback',sub:'Vibration on pose completion',ctrl:`<label style="position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer;display:inline-block"><input type="checkbox" checked style="opacity:0;position:absolute"><div style="position:absolute;inset:0;background:var(--sage);border-radius:100px"></div><div style="position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></label>`},
+    {label:'Score Animations',sub:'Visual effects and combo popups',ctrl:`<label style="position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer;display:inline-block"><input type="checkbox" checked style="opacity:0;position:absolute"><div style="position:absolute;inset:0;background:var(--sage);border-radius:100px"></div><div style="position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></label>`},
+  ];
+  ['detect','game','feedback'].forEach((key,ki)=>{
+    const container=document.getElementById(key+'Settings');
+    if(!container) return;
+    const items=[detect,game,feedback][ki];
+    items.forEach((s,i)=>{ container.innerHTML+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:${i<items.length-1?'1px solid var(--rule)':'none'}"><div><div style="font-size:13px;font-weight:500;color:var(--ink-900)">${s.label}</div><div style="font-size:12px;color:var(--ink-300);margin-top:1px">${s.sub}</div></div>${s.ctrl}</div>`; });
+  });
+})();
+</script>
+</body>
+</html>

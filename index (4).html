@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dhyanly™ — Intelligent Wellness Suite</title>
+<meta name="description" content="Dhyanly™ — AI-powered wellness apps rooted in Indian Knowledge Systems. By YogaXBiofeedback Pvt Ltd."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200;1,9..144,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Azeret+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --canvas:    #F5F3EF;
+  --canvas2:   #EEECEA;
+  --white:     #FDFCFA;
+  --panel:     #F9F7F4;
+  --ink-900:   #1C1B18;
+  --ink-700:   #3D3C37;
+  --ink-500:   #6B6960;
+  --ink-300:   #A8A69E;
+  --ink-100:   #DDD9D1;
+  --sage:      #3D7A5F;
+  --sage-mid:  #5A9A7A;
+  --sage-light:#E8F2ED;
+  --sage-pale: #F2F8F5;
+  --slate:     #3B5A8A;
+  --slate-lt:  #EBF0F8;
+  --amber:     #9B6B1A;
+  --amber-lt:  #FBF4E6;
+  --plum:      #6B3D7A;
+  --plum-lt:   #F3EDF8;
+  --rule:      rgba(28,27,24,.08);
+  --rule-mid:  rgba(28,27,24,.13);
+  --display:   'Fraunces', Georgia, serif;
+  --body:      'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono:      'Azeret Mono', monospace;
+  --ease:      cubic-bezier(.16,1,.3,1);
+  --sh-sm:     0 1px 3px rgba(28,27,24,.05),0 4px 14px rgba(28,27,24,.06);
+  --sh-md:     0 2px 8px rgba(28,27,24,.07),0 12px 32px rgba(28,27,24,.09);
+  --sh-lg:     0 4px 16px rgba(28,27,24,.08),0 24px 64px rgba(28,27,24,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--canvas);color:var(--ink-900);
+  font-family:var(--body);font-size:15px;font-weight:400;line-height:1.65;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+/* grain */
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:.022;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:300;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(24px,5vw,88px);height:64px;
+  background:rgba(245,243,239,.88);
+  backdrop-filter:saturate(180%) blur(22px);
+  -webkit-backdrop-filter:saturate(180%) blur(22px);
+  border-bottom:1px solid var(--rule);
+}
+.nav-brand{display:flex;align-items:center;gap:11px;text-decoration:none}
+.nav-mark{width:36px;height:36px;flex-shrink:0}
+.nav-name{font-family:var(--display);font-size:20px;font-weight:300;letter-spacing:-.2px;color:var(--ink-900)}
+.nav-name sup{font-family:var(--mono);font-size:8px;font-weight:300;color:var(--ink-300);vertical-align:super;letter-spacing:.06em}
+.nav-right{display:flex;align-items:center;gap:4px}
+.nav-link{font-size:13px;font-weight:500;color:var(--ink-500);text-decoration:none;padding:6px 14px;border-radius:100px;transition:color .2s,background .2s}
+.nav-link:hover{color:var(--ink-900);background:var(--rule)}
+.nav-cta{
+  margin-left:8px;font-size:12px;font-weight:600;letter-spacing:.04em;
+  color:var(--white);background:var(--ink-900);
+  padding:8px 20px;border-radius:100px;text-decoration:none;
+  transition:opacity .2s,transform .15s;
+}
+.nav-cta:hover{opacity:.85;transform:translateY(-1px)}
+@media(max-width:620px){.nh{display:none}}
+
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:1;
+  max-width:1280px;margin:0 auto;
+  padding:96px clamp(24px,6vw,100px) 80px;
+  display:grid;grid-template-columns:1.1fr 1fr;gap:80px;align-items:center;
+}
+@media(max-width:900px){.hero{grid-template-columns:1fr;gap:52px;padding-top:68px}.hv{display:none}}
+
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--sage);background:var(--sage-pale);
+  border:1px solid rgba(61,122,95,.15);border-radius:100px;padding:5px 14px;margin-bottom:28px;
+}
+.kpulse{width:6px;height:6px;border-radius:50%;background:var(--sage);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+
+.hero-h1{
+  font-family:var(--display);
+  font-size:clamp(44px,6vw,74px);
+  font-weight:200;line-height:1.02;letter-spacing:-.03em;
+  color:var(--ink-900);margin-bottom:24px;
+}
+.hero-h1 em{font-style:italic;font-weight:300;color:var(--sage)}
+
+.hero-p{
+  font-size:clamp(15px,1.6vw,17px);font-weight:400;color:var(--ink-500);
+  line-height:1.75;max-width:480px;margin-bottom:44px;
+}
+
+.btns{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.btn-fill{
+  display:inline-flex;align-items:center;gap:9px;
+  background:var(--ink-900);color:var(--white);
+  font-family:var(--body);font-size:13px;font-weight:600;letter-spacing:.02em;
+  padding:13px 28px;border-radius:100px;text-decoration:none;
+  transition:opacity .2s,transform .2s;
+  box-shadow:0 2px 10px rgba(28,27,24,.18);
+}
+.btn-fill:hover{opacity:.87;transform:translateY(-1px)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:9px;
+  background:transparent;color:var(--ink-700);
+  font-family:var(--body);font-size:13px;font-weight:500;
+  padding:12px 24px;border-radius:100px;text-decoration:none;
+  border:1px solid var(--rule-mid);transition:border-color .2s,background .2s;
+}
+.btn-ghost:hover{border-color:var(--ink-300);background:var(--white)}
+
+.hero-stats{margin-top:52px;display:flex;gap:32px;flex-wrap:wrap}
+.hstat-val{font-family:var(--display);font-size:28px;font-weight:300;letter-spacing:-.02em;color:var(--ink-900);line-height:1}
+.hstat-lbl{font-family:var(--mono);font-size:9px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-top:4px}
+
+/* ── HERO VISUAL ── */
+.hv{position:relative}
+.hv-card{
+  background:var(--white);border-radius:24px;
+  border:1px solid var(--rule);box-shadow:var(--sh-lg);
+  padding:24px 22px 20px;position:relative;overflow:hidden;
+}
+.hv-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
+  background:linear-gradient(90deg,var(--sage),var(--sage-mid) 60%,transparent);
+}
+.hv-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.hv-date{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:3px}
+.hv-heading{font-family:var(--display);font-size:18px;font-weight:300;letter-spacing:-.01em;color:var(--ink-900)}
+.hv-live{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--sage);
+  background:var(--sage-pale);border:1px solid rgba(61,122,95,.15);
+  border-radius:100px;padding:4px 10px;
+}
+.hv-live-dot{width:5px;height:5px;border-radius:50%;background:var(--sage);animation:pulse 2.4s ease-in-out infinite}
+
+.hv-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.hv-m{background:var(--panel);border-radius:12px;border:1px solid var(--rule);padding:13px 11px}
+.hv-m-val{font-family:var(--display);font-size:24px;font-weight:300;line-height:1;margin-bottom:4px;letter-spacing:-.02em}
+.hv-m-unit{font-size:10px;opacity:.45;margin-left:1px}
+.hv-m-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300)}
+.c-sage{color:var(--sage)}.c-slate{color:var(--slate)}.c-amber{color:var(--amber)}
+
+.hv-wave-wrap{background:var(--panel);border-radius:12px;border:1px solid var(--rule);padding:13px 14px;margin-bottom:14px}
+.hv-wave-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-bottom:10px}
+.hv-wave{width:100%;height:38px;display:block;overflow:visible}
+
+.hv-tags{display:flex;gap:7px;flex-wrap:wrap}
+.hv-tag{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;border-radius:100px}
+.t-sage{background:var(--sage-light);color:var(--sage)}
+.t-slate{background:var(--slate-lt);color:var(--slate)}
+.t-amber{background:var(--amber-lt);color:var(--amber)}
+
+/* floating chips */
+.chip{
+  position:absolute;background:var(--white);border:1px solid var(--rule);
+  border-radius:14px;padding:10px 14px;box-shadow:var(--sh-md);
+  display:flex;align-items:center;gap:10px;
+}
+.chip-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chip-val{font-family:var(--display);font-size:14px;font-weight:300;color:var(--ink-900);line-height:1.2}
+.chip-sub{font-family:var(--mono);font-size:8px;letter-spacing:.06em;color:var(--ink-300)}
+.chip-tl{top:-18px;right:-18px}
+.chip-bl{bottom:-18px;left:-18px}
+
+/* ── MARQUEE ── */
+.mq-wrap{
+  position:relative;z-index:1;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  background:var(--white);overflow:hidden;padding:14px 0;
+}
+.mq-track{display:flex;animation:mq 34s linear infinite;width:max-content}
+.mq-track:hover{animation-play-state:paused}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.mq-item{
+  display:flex;align-items:center;gap:10px;padding:0 36px;white-space:nowrap;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);
+}
+.mq-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-100)}
+.mq-item strong{color:var(--ink-700);font-weight:500}
+.mq-wrap::before,.mq-wrap::after{
+  content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none;
+}
+.mq-wrap::before{left:0;background:linear-gradient(90deg,var(--white),transparent)}
+.mq-wrap::after{right:0;background:linear-gradient(-90deg,var(--white),transparent)}
+
+/* ── APPS ── */
+.apps-sec{position:relative;z-index:1;background:var(--white);border-top:1px solid var(--rule)}
+.apps-inner{max-width:1280px;margin:0 auto;padding:clamp(72px,9vw,120px) clamp(24px,6vw,100px)}
+.sec-head{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;margin-bottom:64px}
+@media(max-width:680px){.sec-head{grid-template-columns:1fr;gap:14px}}
+.eyebrow{font-family:var(--mono);font-size:9px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);margin-bottom:14px;display:block}
+.display-h{font-family:var(--display);font-size:clamp(30px,3.8vw,46px);font-weight:200;line-height:1.06;letter-spacing:-.025em;color:var(--ink-900);margin-bottom:18px}
+.display-h em{font-style:italic;color:var(--sage)}
+.body-p{font-size:15px;font-weight:400;color:var(--ink-500);line-height:1.8;max-width:520px}
+
+.apps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+
+.app-card{
+  position:relative;overflow:hidden;
+  background:var(--canvas);border:1px solid var(--rule);border-radius:20px;
+  padding:30px 26px 26px;text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease),background .3s;
+}
+.app-card::after{
+  content:'';position:absolute;inset:0;border-radius:20px;opacity:0;
+  transition:opacity .35s;pointer-events:none;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,var(--cg,.04),transparent 70%);
+}
+.app-card:hover{transform:translateY(-4px);box-shadow:var(--sh-lg);background:var(--white)}
+.app-card:hover::after{opacity:1}
+
+.cm{--ca:var(--sage);--cg:rgba(61,122,95,.07)}
+.cd{--ca:var(--slate);--cg:rgba(59,90,138,.07)}
+.cf{--ca:var(--amber);--cg:rgba(155,107,26,.06)}
+.cg{--ca:var(--plum);--cg:rgba(107,61,122,.07)}
+
+.card-bar{
+  position:absolute;top:0;left:28px;right:28px;height:2px;
+  background:var(--ca,var(--sage));border-radius:0 0 4px 4px;
+  transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease);
+}
+.app-card:hover .card-bar{transform:scaleX(1)}
+
+.card-icon{
+  width:46px;height:46px;border-radius:12px;background:var(--white);
+  border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;
+  margin-bottom:22px;font-size:20px;
+  transition:border-color .3s,box-shadow .3s;
+}
+.app-card:hover .card-icon{border-color:var(--ca,var(--sage));box-shadow:0 0 0 4px color-mix(in srgb,var(--ca) 8%,transparent)}
+
+.card-tag{
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ca,var(--sage));margin-bottom:8px;
+  display:flex;align-items:center;gap:7px;
+}
+.card-dot{width:5px;height:5px;border-radius:50%;background:var(--sage);animation:pulse 2.4s ease-in-out infinite}
+
+.card-title{font-family:var(--display);font-size:20px;font-weight:300;letter-spacing:-.02em;color:var(--ink-900);line-height:1.15;margin-bottom:11px}
+.card-body{font-size:13px;font-weight:400;color:var(--ink-500);line-height:1.7;flex:1;margin-bottom:24px}
+.card-cta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ca,var(--sage));display:flex;align-items:center;gap:6px;transition:gap .25s var(--ease)}
+.app-card:hover .card-cta{gap:10px}
+.card-soon{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);background:var(--canvas2);border:1px solid var(--rule);border-radius:100px;padding:4px 12px;display:inline-block}
+
+/* ── WHY SECTION ── */
+.why-sec{position:relative;z-index:1;background:var(--canvas);border-top:1px solid var(--rule)}
+.why-inner{max-width:1280px;margin:0 auto;padding:clamp(72px,9vw,120px) clamp(24px,6vw,100px)}
+.why-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:56px}
+@media(max-width:760px){.why-grid{grid-template-columns:1fr}}
+
+.why-card{
+  background:var(--white);border:1px solid var(--rule);border-radius:20px;
+  padding:30px 26px;
+  transition:box-shadow .3s var(--ease),transform .3s var(--ease);
+}
+.why-card:hover{box-shadow:var(--sh-md);transform:translateY(-3px)}
+.why-num{
+  font-family:var(--display);font-size:52px;font-weight:200;
+  letter-spacing:-.04em;line-height:1;color:var(--ink-100);
+  margin-bottom:18px;
+}
+.why-title{font-family:var(--display);font-size:20px;font-weight:300;letter-spacing:-.01em;color:var(--ink-900);margin-bottom:10px;line-height:1.2}
+.why-body{font-size:13px;color:var(--ink-500);line-height:1.7}
+
+/* ── CTA BAND ── */
+.cta-band{
+  position:relative;z-index:1;
+  background:var(--ink-900);
+  padding:clamp(56px,8vw,96px) clamp(24px,6vw,100px);
+  text-align:center;
+}
+.cta-band .eyebrow{color:rgba(255,255,255,.3)}
+.cta-band .display-h{color:var(--white);margin-bottom:14px}
+.cta-band .display-h em{color:rgba(255,255,255,.45)}
+.cta-sub{font-size:16px;color:rgba(255,255,255,.45);margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-fill-inv{
+  display:inline-flex;align-items:center;gap:9px;
+  background:var(--white);color:var(--ink-900);
+  font-family:var(--body);font-size:13px;font-weight:600;letter-spacing:.02em;
+  padding:13px 28px;border-radius:100px;text-decoration:none;
+  transition:opacity .2s,transform .2s;
+  box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+.btn-fill-inv:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost-inv{
+  display:inline-flex;align-items:center;gap:9px;
+  background:transparent;color:rgba(255,255,255,.6);
+  font-family:var(--body);font-size:13px;font-weight:500;
+  padding:12px 24px;border-radius:100px;text-decoration:none;
+  border:1px solid rgba(255,255,255,.15);
+  transition:border-color .2s,color .2s;
+}
+.btn-ghost-inv:hover{border-color:rgba(255,255,255,.35);color:var(--white)}
+
+/* ── CO STRIP ── */
+.co-strip{
+  position:relative;z-index:1;
+  background:var(--white);border-top:1px solid var(--rule);
+  padding:24px clamp(24px,6vw,100px);
+  display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;
+}
+.co-txt{font-family:var(--mono);font-size:10px;letter-spacing:.07em;color:var(--ink-300);line-height:1.8}
+.co-txt strong{color:var(--ink-700);font-weight:500}
+.co-badges{display:flex;flex-wrap:wrap;gap:7px}
+.co-badge{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:100px;border:1px solid var(--rule);color:var(--ink-300);background:var(--canvas)}
+
+/* ── FOOTER ── */
+footer{position:relative;z-index:1;background:var(--ink-900);padding:clamp(52px,7vw,80px) clamp(24px,6vw,100px) 36px}
+.foot-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:56px;margin-bottom:52px}
+@media(max-width:720px){.foot-grid{grid-template-columns:1fr;gap:36px}}
+.foot-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.foot-mark{width:28px;height:28px}
+.foot-brand{font-family:var(--display);font-size:18px;font-weight:300;color:var(--white);letter-spacing:-.1px}
+.foot-brand sup{font-family:var(--mono);font-size:8px;font-weight:300;opacity:.3;vertical-align:super}
+.foot-desc{font-size:13px;color:rgba(255,255,255,.35);line-height:1.75;max-width:300px}
+.foot-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:18px}
+.foot-links{display:flex;flex-direction:column;gap:11px}
+.foot-links a{font-size:13px;font-weight:400;color:rgba(255,255,255,.48);text-decoration:none;transition:color .2s}
+.foot-links a:hover{color:var(--white)}
+.foot-bottom{max-width:1280px;margin:0 auto;border-top:1px solid rgba(255,255,255,.07);padding-top:24px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
+.foot-bottom p{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:rgba(255,255,255,.18)}
+
+/* ── SCROLL REVEAL ── */
+.sr{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.sr.v{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;z-index:600;background:rgba(28,27,24,.42);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--white);border-radius:24px;padding:40px 36px;max-width:420px;width:100%;text-align:center;box-shadow:var(--sh-lg);animation:mIn .35s var(--ease)}
+@keyframes mIn{from{transform:scale(.93) translateY(16px);opacity:0}to{transform:none;opacity:1}}
+.m-icon{width:56px;height:56px;border-radius:14px;margin:0 auto 20px;font-size:26px;display:flex;align-items:center;justify-content:center}
+.m-title{font-family:var(--display);font-size:22px;font-weight:300;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:10px}
+.m-body{font-size:13px;color:var(--ink-500);line-height:1.7;margin-bottom:8px}
+.m-file{font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:var(--canvas);border:1px solid var(--rule);border-radius:8px;padding:8px 14px;display:inline-block;margin:12px 0 24px;color:var(--ink-700)}
+.m-close{background:var(--ink-900);color:var(--white);border:none;border-radius:100px;padding:12px 32px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s}
+.m-close:hover{opacity:.82}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-brand">
+    <svg class="nav-mark" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="8.5" r="2.6" stroke="#1C1B18" stroke-width="1.5"/>
+      <path d="M18 11.1C21.5 12.8 23 10.2 21.5 7.2" stroke="#1C1B18" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M18 11.1C15.2 13.8 13.5 17 11.8 19.2 9.5 21 8.3 22.7 9.4 23.6 11 24.8 13.8 23.2 15.4 21.4 16.5 20.2 17 19.6 18 19.6 19 19.6 19.5 20.2 20.6 21.4 22.2 23.2 25 24.8 26.6 23.6 27.7 22.7 26.5 21 24.2 19.2 22.5 17 20.8 13.8 18 11.1Z" stroke="#1C1B18" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 23.6C9.4 25.9 11.5 27 13.8 26 15.4 25.2 16.6 24.5 18 24.5 19.4 24.5 20.6 25.2 22.2 26 24.5 27 26.6 25.9 26 23.6" stroke="#1C1B18" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-name">dhyanly<sup>TM</sup></span>
+  </a>
+  <div class="nav-right">
+    <a href="#apps"    class="nav-link nh">Suite</a>
+    <a href="#why"     class="nav-link nh">Why Dhyanly</a>
+    <a href="#company" class="nav-link nh">Company</a>
+    <a href="mailto:satyam@yogaxbiofeedback.com" class="nav-cta">Get in Touch</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="kicker"><span class="kpulse"></span>AI · Biofeedback · Wellness</div>
+    <h1 class="hero-h1">Your mind,<br><em>measured</em><br>&amp; transformed.</h1>
+    <p class="hero-p">Dhyanly™ is a suite of precision wellness apps that combines on-device AI, clinical biofeedback, and Indian Knowledge Systems — built for people who take their inner life seriously.</p>
+    <div class="btns">
+      <a href="#apps" class="btn-fill">
+        Explore the Suite
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#why" class="btn-ghost">Why Dhyanly</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hstat-val">4</div><div class="hstat-lbl">Precision Apps</div></div>
+      <div><div class="hstat-val">IKS</div><div class="hstat-lbl">Rooted</div></div>
+      <div><div class="hstat-val">AI</div><div class="hstat-lbl">Personalised</div></div>
+    </div>
+  </div>
+
+  <!-- Dashboard card -->
+  <div class="hv">
+    <div class="chip chip-tl">
+      <div class="chip-icon" style="background:var(--sage-light)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="var(--sage)" stroke-width="1.4"/><path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2" stroke="var(--sage)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="chip-val">HRV <span style="color:var(--sage)">72</span></div>
+        <div class="chip-sub">↑ 8% this week</div>
+      </div>
+    </div>
+
+    <div class="hv-card">
+      <div class="hv-top">
+        <div><div class="hv-date">April 18 · 2026</div><div class="hv-heading">Today's Wellness</div></div>
+        <div class="hv-live"><span class="hv-live-dot"></span>Live</div>
+      </div>
+      <div class="hv-metrics">
+        <div class="hv-m"><div class="hv-m-val c-sage">72<span class="hv-m-unit">ms</span></div><div class="hv-m-lbl">HRV</div></div>
+        <div class="hv-m"><div class="hv-m-val c-slate">4.2<span class="hv-m-unit">/s</span></div><div class="hv-m-lbl">Breath</div></div>
+        <div class="hv-m"><div class="hv-m-val c-amber">86<span class="hv-m-unit">%</span></div><div class="hv-m-lbl">Coherence</div></div>
+      </div>
+      <div class="hv-wave-wrap">
+        <div class="hv-wave-lbl">Svara Breath · Chandra Nadi</div>
+        <svg class="hv-wave" viewBox="0 0 296 38" fill="none">
+          <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3D7A5F" stop-opacity=".18"/><stop offset="100%" stop-color="#3D7A5F" stop-opacity="0"/></linearGradient></defs>
+          <path d="M0 19C12 19 12 7 24 7 36 7 36 31 48 31 60 31 60 8 72 8 84 8 84 30 96 30 108 30 108 9 120 9 132 9 132 29 144 29 156 29 156 9 168 9 180 9 180 28 192 28 204 28 204 11 216 11 228 11 228 27 240 27 252 27 252 12 264 12 276 12 276 24 296 22L296 38 0 38Z" fill="url(#wg)"/>
+          <path d="M0 19C12 19 12 7 24 7 36 7 36 31 48 31 60 31 60 8 72 8 84 8 84 30 96 30 108 30 108 9 120 9 132 9 132 29 144 29 156 29 156 9 168 9 180 9 180 28 192 28 204 28 204 11 216 11 228 11 228 27 240 27 252 27 252 12 264 12 276 12 276 24 296 22" stroke="#3D7A5F" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="hv-tags">
+        <span class="hv-tag t-sage">Parasympathetic</span>
+        <span class="hv-tag t-slate">Left Nadi</span>
+        <span class="hv-tag t-amber">18 min</span>
+      </div>
+    </div>
+
+    <div class="chip chip-bl">
+      <div class="chip-icon" style="background:var(--slate-lt)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zM8 5.5v3l2 1.5" stroke="var(--slate)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="chip-val">Harm <span style="color:var(--slate)">−34%</span></div>
+        <div class="chip-sub">MCAS active</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="mq-wrap">
+  <div class="mq-track">
+    <span class="mq-item"><span class="mq-dot"></span><strong>MCAS</strong> Mindful Content Awareness</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>DhyanlyApp</strong> Mental Health Monitor</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>SvaraFlow</strong> Yoga &amp; Journal Studio</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>YogaArena</strong> Body Intelligence Games</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>IKS Rooted</strong> Indian Knowledge Systems</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>AI Personalised</strong> Every User, Every Day</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>Biofeedback</strong> HRV · EEG · Svara</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>YogaXBiofeedback</strong> Pvt Ltd · Delhi · 2026</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>MCAS</strong> Mindful Content Awareness</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>DhyanlyApp</strong> Mental Health Monitor</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>SvaraFlow</strong> Yoga &amp; Journal Studio</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>YogaArena</strong> Body Intelligence Games</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>IKS Rooted</strong> Indian Knowledge Systems</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>AI Personalised</strong> Every User, Every Day</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>Biofeedback</strong> HRV · EEG · Svara</span>
+    <span class="mq-item"><span class="mq-dot"></span><strong>YogaXBiofeedback</strong> Pvt Ltd · Delhi · 2026</span>
+  </div>
+</div>
+
+<!-- APPS -->
+<section class="apps-sec" id="apps">
+  <div class="apps-inner">
+    <div class="sec-head">
+      <div class="sr">
+        <span class="eyebrow">The Suite</span>
+        <h2 class="display-h">One brand.<br><em>Four dimensions.</em></h2>
+      </div>
+      <p class="body-p sr d1">Each Dhyanly™ module is a standalone app — built and deployed independently. Drop each file into your GitHub repo as it's ready and the suite expands live, with zero disruption to the rest.</p>
+    </div>
+
+    <div class="apps-grid">
+      <a class="app-card cm sr" href="mcas.html" onclick="return chk(event,'mcas.html','Mindful Content Awareness System','🧘','sage-light')">
+        <div class="card-bar"></div>
+        <div class="card-icon">🧘</div>
+        <div class="card-tag"><span class="card-dot"></span>MCAS · Module 01</div>
+        <div class="card-title">Mindful Content Awareness System</div>
+        <div class="card-body">On-device AI watches your social feed, detects harmful psychological patterns in real time, and triggers Svara Yoga micro-interventions before emotional damage occurs. The only app that acts on what you see, not just how long you scroll.</div>
+        <span class="card-cta">Open module →</span>
+      </a>
+
+      <a class="app-card cd sr d1" href="dhyanly-app.html" onclick="return chk(event,'dhyanly-app.html','DhyanlyApp — Mental Health Monitor','🫀','slate-light')">
+        <div class="card-bar"></div>
+        <div class="card-icon">🫀</div>
+        <div class="card-tag" style="color:var(--slate)">DhyanlyApp · Module 02</div>
+        <div class="card-title">Mental Health Monitor</div>
+        <div class="card-body">Weekly check-ins fused with physical biomarkers build a longitudinal picture of your mental wellbeing. AI detects patterns early and prescribes personalised breathing and mindfulness protocols specific to your state.</div>
+        <span class="card-soon">Coming Soon</span>
+      </a>
+
+      <a class="app-card cf sr d2" href="svara-flow.html" onclick="return chk(event,'svara-flow.html','SvaraFlow — Yoga & Journal Studio','🌿','amber-light')">
+        <div class="card-bar"></div>
+        <div class="card-icon">🌿</div>
+        <div class="card-tag" style="color:var(--amber)">SvaraFlow · Module 03</div>
+        <div class="card-title">Yoga, Habit &amp; Journal Studio</div>
+        <div class="card-body">Your complete daily practice companion — personalised asana, pranayama, meditation, nutrition, and mindfulness in one place. Track progress, build lasting habits, journal your journey, and connect with a community of practitioners.</div>
+        <span class="card-soon">Coming Soon</span>
+      </a>
+
+      <a class="app-card cg sr d3" href="yoga-arena.html" onclick="return chk(event,'yoga-arena.html','YogaArena — Body Intelligence Game','🕹️','plum-light')">
+        <div class="card-bar"></div>
+        <div class="card-icon">🕹️</div>
+        <div class="card-tag" style="color:var(--plum)">YogaArena · Module 04</div>
+        <div class="card-title">Body Intelligence Game Engine</div>
+        <div class="card-body">Your camera becomes a coach. MediaPipe/PoseNet detects your skeleton in real time — hold the posture and the game rewards you, lose alignment and you lose. Multi-level editions span Surya Namaskar, asana flows, and full fitness circuits.</div>
+        <span class="card-soon">Coming Soon</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- WHY DHYANLY -->
+<section class="why-sec" id="why">
+  <div class="why-inner">
+    <div class="sr">
+      <span class="eyebrow">Why Dhyanly</span>
+      <h2 class="display-h">Built different,<br><em>by design.</em></h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-card sr d1">
+        <div class="why-num">01</div>
+        <div class="why-title">Content-aware, not just time-aware</div>
+        <div class="why-body">Every other screen-time app counts minutes. MCAS reads what is actually on your screen — classifying content type, emotional tone, and psychological risk — and acts before the damage is done.</div>
+      </div>
+      <div class="why-card sr d2">
+        <div class="why-num">02</div>
+        <div class="why-title">Ancient science, modern validation</div>
+        <div class="why-body">Dhyanly's interventions are rooted in Svara Yoga and classical Indian Knowledge Systems, cross-validated against HRV and EEG biofeedback. Wisdom that has worked for millennia, now measurable.</div>
+      </div>
+      <div class="why-card sr d3">
+        <div class="why-title why-num">03</div>
+        <div class="why-title">One intelligence, four touchpoints</div>
+        <div class="why-body">From the content you consume to the postures you hold, Dhyanly watches the full arc of your day — and responds intelligently at every layer. Content. Health. Practice. Movement. All connected.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<div class="cta-band">
+  <div style="max-width:1280px;margin:0 auto">
+    <span class="eyebrow sr">Get Started</span>
+    <h2 class="display-h sr">The suite is <em>open</em>.</h2>
+    <p class="cta-sub sr">Explore MCAS today. More modules arriving soon. Built in India, for the world.</p>
+    <div class="cta-btns sr">
+      <a href="mcas.html" onclick="return chk(event,'mcas.html','Mindful Content Awareness System','🧘','sage-light')" class="btn-fill-inv">
+        Open MCAS
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="mailto:satyam@yogaxbiofeedback.com" class="btn-ghost-inv">Contact Us</a>
+    </div>
+  </div>
+</div>
+
+<!-- COMPANY STRIP -->
+<div class="co-strip" id="company">
+  <div class="co-txt">
+    <strong>YogaXBiofeedback Private Limited</strong><br>
+    CIN: U62011DL2026PTC462641 &nbsp;·&nbsp; Trademark Applied &nbsp;·&nbsp; New Delhi, India
+  </div>
+  <div class="co-badges">
+    <span class="co-badge">Deep-Tech</span>
+    <span class="co-badge">IKS Rooted</span>
+    <span class="co-badge">AI Powered</span>
+    <span class="co-badge">Biofeedback</span>
+    <span class="co-badge">India Built</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-grid">
+    <div>
+      <div class="foot-logo">
+        <svg class="foot-mark" viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="6.5" r="2" stroke="rgba(255,255,255,.5)" stroke-width="1.3"/>
+          <path d="M14 8.5C16.8 9.8 17.8 7.8 16.8 5.6" stroke="rgba(255,255,255,.5)" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M14 8.5C11.5 10.9 10 13.6 8.8 15.4 7 16.8 6 18.2 6.9 19 8.2 19.9 10.6 18.6 12 17.2 13 16.1 13.4 15.6 14 15.6 14.6 15.6 15 16.1 16 17.2 17.4 18.6 19.8 19.9 21.1 19 22 18.2 21 16.8 19.2 15.4 18 13.6 16.5 10.9 14 8.5Z" stroke="rgba(255,255,255,.5)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M7.5 19C7 21 8.9 21.9 10.8 21 12.1 20.3 13.2 19.8 14 19.8 14.8 19.8 15.9 20.3 17.2 21 19.1 21.9 21 21 20.5 19" stroke="rgba(255,255,255,.5)" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="foot-brand">dhyanly<sup>TM</sup></span>
+      </div>
+      <p class="foot-desc">AI-powered wellness rooted in Indian Knowledge Systems. Built by YogaXBiofeedback Pvt Ltd, New Delhi.</p>
+    </div>
+    <div>
+      <div class="foot-lbl">Suite</div>
+      <div class="foot-links">
+        <a href="mcas.html"        onclick="return chk(event,'mcas.html','Mindful Content Awareness System','🧘','sage-light')">MCAS</a>
+        <a href="dhyanly-app.html" onclick="return chk(event,'dhyanly-app.html','DhyanlyApp','🫀','slate-light')">DhyanlyApp</a>
+        <a href="svara-flow.html"  onclick="return chk(event,'svara-flow.html','SvaraFlow','🌿','amber-light')">SvaraFlow</a>
+        <a href="yoga-arena.html"  onclick="return chk(event,'yoga-arena.html','YogaArena','🕹️','plum-light')">YogaArena</a>
+      </div>
+    </div>
+    <div>
+      <div class="foot-lbl">Company</div>
+      <div class="foot-links">
+        <a href="#why">Why Dhyanly</a>
+        <a href="#company">About</a>
+        <a href="mailto:satyam@yogaxbiofeedback.com">Contact</a>
+        <a href="mailto:satyam@yogaxbiofeedback.com">Collaborate</a>
+      </div>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <p>© 2026 YogaXBiofeedback Private Limited · CIN: U62011DL2026PTC462641 · All rights reserved</p>
+    <p>Dhyanly™ Trademark Applied · Version 1.0 · April 2026</p>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div class="m-icon" id="mi"></div>
+    <div class="m-title" id="mt"></div>
+    <div class="m-body">This module is under active development. Upload the file to the same GitHub folder as <code style="font-family:var(--mono);font-size:11px;background:var(--canvas);padding:2px 6px;border-radius:4px">index.html</code> to activate it live:</div>
+    <div class="m-file" id="mf"></div>
+    <button class="m-close" onclick="document.getElementById('modal').classList.remove('open')">Back to Suite</button>
+  </div>
+</div>
+
+<script>
+// Scroll reveal
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('v'); obs.unobserve(e.target); } });
+}, {threshold:.07});
+document.querySelectorAll('.sr').forEach(el => obs.observe(el));
+
+// Module guard
+const bgMap = {'sage-light':'var(--sage-light)','slate-light':'var(--slate-lt)','amber-light':'var(--amber-lt)','plum-light':'var(--plum-lt)'};
+function chk(e, file, name, icon, bg){
+  const x = new XMLHttpRequest();
+  x.open('HEAD', file, false);
+  try {
+    x.send();
+    if(x.status === 200 || x.status === 0) return true;
+    if(x.status === 404){ e.preventDefault(); show(file,name,icon,bg); return false; }
+  } catch(err){ return true; }
+  return true;
+}
+function show(file, name, icon, bg){
+  const mi = document.getElementById('mi');
+  mi.textContent = icon; mi.style.background = bgMap[bg] || bgMap['sage-light'];
+  document.getElementById('mt').textContent = name;
+  document.getElementById('mf').textContent = file;
+  document.getElementById('modal').classList.add('open');
+}
+</script>
+</body>
+</html>

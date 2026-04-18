@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Contact & About — Dhyanly™</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Azeret+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+:root{--canvas:#F5F3EF;--canvas2:#EEECEA;--white:#FDFCFA;--ink-900:#1C1B18;--ink-700:#3D3C37;--ink-500:#6B6960;--ink-300:#A8A69E;--sage:#3D7A5F;--sage-light:#E8F2ED;--sage-pale:#F2F8F5;--slate:#3B5A8A;--slate-lt:#EBF0F8;--amber:#9B6B1A;--amber-lt:#FBF4E6;--rule:rgba(28,27,24,.08);--rule-mid:rgba(28,27,24,.13);--display:'Fraunces',Georgia,serif;--body:'Plus Jakarta Sans',system-ui,sans-serif;--mono:'Azeret Mono',monospace;--ease:cubic-bezier(.16,1,.3,1);--sh-sm:0 1px 3px rgba(28,27,24,.05),0 4px 14px rgba(28,27,24,.06);--sh-md:0 2px 8px rgba(28,27,24,.07),0 12px 32px rgba(28,27,24,.09)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--canvas);color:var(--ink-900);font-family:var(--body);font-size:15px;font-weight:400;line-height:1.65;-webkit-font-smoothing:antialiased}
+nav{position:sticky;top:0;z-index:100;background:rgba(245,243,239,.92);backdrop-filter:blur(22px);border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(24px,5vw,80px);height:60px}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-mark{width:30px;height:30px}
+.nav-name{font-family:var(--display);font-size:18px;font-weight:300;color:var(--ink-900)}
+.nav-name sup{font-family:var(--mono);font-size:8px;color:var(--ink-300);vertical-align:super}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);text-decoration:none;transition:color .2s}
+.nav-back:hover{color:var(--ink-700)}
+
+/* HERO */
+.hero{max-width:1100px;margin:0 auto;padding:80px clamp(24px,5vw,80px) 64px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+@media(max-width:760px){.hero{grid-template-columns:1fr;gap:48px}}
+.hero-label{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);margin-bottom:14px;display:block}
+.hero-title{font-family:var(--display);font-size:clamp(34px,5vw,52px);font-weight:200;letter-spacing:-.025em;color:var(--ink-900);line-height:1.06;margin-bottom:18px}
+.hero-title em{font-style:italic;color:var(--sage)}
+.hero-body{font-size:15px;color:var(--ink-500);line-height:1.8;margin-bottom:32px}
+
+/* CONTACT CARDS */
+.contact-cards{display:flex;flex-direction:column;gap:12px}
+.contact-card{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;transition:box-shadow .25s var(--ease),transform .25s var(--ease)}
+.contact-card:hover{box-shadow:var(--sh-md);transform:translateY(-2px)}
+.cc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.cc-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);margin-bottom:3px}
+.cc-val{font-size:13px;font-weight:600;color:var(--ink-900)}
+.cc-arrow{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-300)}
+
+/* ABOUT SECTION */
+.about-sec{background:var(--white);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:clamp(56px,7vw,80px) clamp(24px,5vw,80px)}
+.about-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:48px}
+@media(max-width:760px){.about-inner{grid-template-columns:1fr;gap:36px}}
+.about-card{padding:0}
+.about-icon{font-size:28px;margin-bottom:14px;display:block}
+.about-title{font-family:var(--display);font-size:18px;font-weight:300;letter-spacing:-.01em;color:var(--ink-900);margin-bottom:10px;line-height:1.2}
+.about-body{font-size:13px;color:var(--ink-500);line-height:1.75}
+
+/* TEAM */
+.team-sec{max-width:1100px;margin:0 auto;padding:clamp(56px,7vw,80px) clamp(24px,5vw,80px)}
+.sec-label{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);margin-bottom:14px;display:block}
+.sec-title{font-family:var(--display);font-size:clamp(26px,3.5vw,36px);font-weight:200;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:40px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.team-card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:24px}
+.tc-avatar{width:52px;height:52px;border-radius:50%;background:var(--sage-light);border:1px solid rgba(61,122,95,.2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--sage);margin-bottom:14px}
+.tc-name{font-size:14px;font-weight:600;color:var(--ink-900);margin-bottom:3px}
+.tc-role{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--sage);margin-bottom:8px}
+.tc-bio{font-size:12px;color:var(--ink-500);line-height:1.65}
+
+/* COLLAB */
+.collab-sec{background:var(--ink-900);padding:clamp(56px,7vw,80px) clamp(24px,5vw,80px);text-align:center}
+.collab-inner{max-width:560px;margin:0 auto}
+.collab-label{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:14px;display:block}
+.collab-title{font-family:var(--display);font-size:clamp(28px,4vw,42px);font-weight:200;letter-spacing:-.025em;color:var(--white);margin-bottom:14px;line-height:1.1}
+.collab-title em{font-style:italic;color:rgba(255,255,255,.45)}
+.collab-body{font-size:14px;color:rgba(255,255,255,.45);line-height:1.75;margin-bottom:32px}
+.collab-btn{display:inline-flex;align-items:center;gap:8px;background:var(--white);color:var(--ink-900);font-family:var(--body);font-size:13px;font-weight:600;padding:12px 28px;border-radius:100px;text-decoration:none;transition:opacity .2s}
+.collab-btn:hover{opacity:.88}
+
+footer{background:var(--ink-900);border-top:1px solid rgba(255,255,255,.07);padding:24px clamp(24px,5vw,80px);text-align:center}
+footer p{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:rgba(255,255,255,.25)}
+footer a{color:rgba(255,255,255,.4);text-decoration:none}
+footer a:hover{color:rgba(255,255,255,.7)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-brand">
+    <svg class="nav-mark" viewBox="0 0 30 30" fill="none">
+      <circle cx="15" cy="7" r="2.2" stroke="#1C1B18" stroke-width="1.3"/>
+      <path d="M15 9.2C17.8 10.5 18.8 8.5 17.8 6.3" stroke="#1C1B18" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M15 9.2C12.7 11.5 11.3 14 10.1 15.8 8.4 17.2 7.5 18.5 8.3 19.2 9.5 20.2 11.8 18.9 13.1 17.5 14 16.5 14.5 16 15 16c.5 0 1 .5 1.9 1.5 1.3 1.4 3.6 2.7 4.8 1.7.8-.7-.1-2-1.8-3.4-1.2-1.8-2.6-4.3-4.9-6.6Z" stroke="#1C1B18" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M8.8 19.2C8.3 21 10 21.8 11.8 21 13 20.4 14 19.9 15 19.9c1 0 2 .5 3.2 1.1 1.8.8 3.5.1 3.1-1.8" stroke="#1C1B18" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-name">dhyanly<sup>TM</sup></span>
+  </a>
+  <a href="index.html" class="nav-back">← Back to Suite</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <span class="hero-label">Contact & About</span>
+    <h1 class="hero-title">Built with<br><em>science</em> and<br>intention.</h1>
+    <p class="hero-body">Dhyanly™ is built at the intersection of India's 5,000-year contemplative science and modern AI. We welcome collaborators, researchers, investors, and practitioners who share this vision.</p>
+  </div>
+  <div class="contact-cards">
+    <a class="contact-card" href="mailto:satyam@yogaxbiofeedback.com">
+      <div class="cc-icon" style="background:var(--sage-light)">✉️</div>
+      <div><div class="cc-label">General & Collaboration</div><div class="cc-val">satyam@yogaxbiofeedback.com</div></div>
+      <span class="cc-arrow">→</span>
+    </a>
+    <a class="contact-card" href="mailto:satyam@yogaxbiofeedback.com?subject=Research Collaboration">
+      <div class="cc-icon" style="background:var(--slate-lt)">🔬</div>
+      <div><div class="cc-label">Research & Academic</div><div class="cc-val">IIT Mandi · IKSMHA Centre</div></div>
+      <span class="cc-arrow">→</span>
+    </a>
+    <a class="contact-card" href="mailto:satyam@yogaxbiofeedback.com?subject=Investment Enquiry">
+      <div class="cc-icon" style="background:var(--amber-lt)">📈</div>
+      <div><div class="cc-label">Investment & Partnership</div><div class="cc-val">YogaXBiofeedback Pvt Ltd</div></div>
+      <span class="cc-arrow">→</span>
+    </a>
+    <div class="contact-card" style="cursor:default">
+      <div class="cc-icon" style="background:var(--canvas2)">🏢</div>
+      <div><div class="cc-label">Registered Company</div><div class="cc-val">CIN: U62011DL2026PTC462641</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="about-sec">
+  <div class="about-inner">
+    <div class="about-card">
+      <span class="about-icon">🧘</span>
+      <div class="about-title">The Mission</div>
+      <div class="about-body">To make India's contemplative science measurable, accessible, and personalised — through rigorous research and technology that respects the depth of the tradition it draws from.</div>
+    </div>
+    <div class="about-card">
+      <span class="about-icon">🔬</span>
+      <div class="about-title">The Research</div>
+      <div class="about-body">Our work is grounded in peer-reviewed RCTs, classical Sanskrit texts (Shiva Swarodaya), and the LNABA framework connecting nasal cycle physiology to autonomic neuroscience. IIT Mandi affiliated.</div>
+    </div>
+    <div class="about-card">
+      <span class="about-icon">🛡️</span>
+      <div class="about-title">The Principles</div>
+      <div class="about-body">Privacy-first. On-device. Transparent. Non-judgmental. We build tools that respect both your inner life and your data — because how technology treats you shapes how you experience yourself.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TEAM -->
+<div class="team-sec">
+  <span class="sec-label">The Team</span>
+  <h2 class="sec-title">The people behind Dhyanly™</h2>
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="tc-avatar">ST</div>
+      <div class="tc-name">Dr. Satyam Tiwari</div>
+      <div class="tc-role">Founder & CEO · PhD Scholar</div>
+      <div class="tc-bio">PhD Candidate at IIT Mandi's IKSMHA Centre. Gold Medal MSc in Yoga Therapy (MDNIY Delhi). Researcher specialising in Svara Yoga, HRV, and EEG. 30+ Doordarshan/AIR media appearances. Author of multiple books on yoga science.</div>
+    </div>
+    <div class="team-card">
+      <div class="tc-avatar" style="background:var(--slate-lt);color:var(--slate)">AB</div>
+      <div class="tc-name">Dr. Arnav Bhavsar</div>
+      <div class="tc-role">Research Supervisor · IIT Mandi</div>
+      <div class="tc-bio">Associate Professor at IIT Mandi's IKSMHA Centre for Consciousness Studies. PhD supervisor and research collaborator on contemplative neuroscience and biofeedback systems.</div>
+    </div>
+    <div class="team-card" style="background:var(--sage-pale);border-color:rgba(61,122,95,.15)">
+      <div class="tc-avatar" style="background:var(--white)">+</div>
+      <div class="tc-name">Join the Team</div>
+      <div class="tc-role">Open Positions</div>
+      <div class="tc-bio">We are looking for researchers, engineers, yoga practitioners, and product designers who want to build at the intersection of ancient wisdom and modern technology. Reach out if this resonates.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COLLAB CTA -->
+<div class="collab-sec">
+  <div class="collab-inner">
+    <span class="collab-label">Collaborate</span>
+    <h2 class="collab-title">Research, invest,<br>or <em>practise</em> with us.</h2>
+    <p class="collab-body">Whether you're a researcher wanting to integrate biofeedback, an institution interested in licensing, or a practitioner who wants to help shape the product — we'd love to hear from you.</p>
+    <a href="mailto:satyam@yogaxbiofeedback.com" class="collab-btn">
+      Get in Touch
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 YogaXBiofeedback Private Limited · CIN: U62011DL2026PTC462641 &nbsp;·&nbsp; <a href="privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="terms.html">Terms</a> &nbsp;·&nbsp; <a href="contact.html">Contact</a></p>
+</footer>
+</body>
+</html>

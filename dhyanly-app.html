@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DhyanlyApp — Mental Health Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200;1,9..144,300&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Azeret+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --canvas:#F5F3EF;--canvas2:#EEECEA;--white:#FDFCFA;--panel:#F0EDE8;
+  --ink-900:#1C1B18;--ink-700:#3D3C37;--ink-500:#6B6960;--ink-300:#A8A69E;--ink-100:#DDD9D1;
+  --sage:#3D7A5F;--sage-mid:#5A9A7A;--sage-light:#E8F2ED;--sage-pale:#F2F8F5;
+  --slate:#3B5A8A;--slate-lt:#EBF0F8;
+  --amber:#9B6B1A;--amber-lt:#FBF4E6;
+  --red:#8B2E2E;--red-lt:#FBEAEA;
+  --plum:#6B3D7A;--plum-lt:#F3EDF8;
+  --rule:rgba(28,27,24,.08);--rule-mid:rgba(28,27,24,.13);
+  --display:'Fraunces',Georgia,serif;--body:'Plus Jakarta Sans',system-ui,sans-serif;--mono:'Azeret Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sh-sm:0 1px 3px rgba(28,27,24,.05),0 4px 14px rgba(28,27,24,.06);
+  --sh-md:0 2px 8px rgba(28,27,24,.07),0 12px 32px rgba(28,27,24,.09);
+  --sh-lg:0 4px 16px rgba(28,27,24,.08),0 24px 64px rgba(28,27,24,.12);
+  --sidebar:240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--canvas);color:var(--ink-900);font-family:var(--body);font-size:14px;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── TOPNAV ── */
+.topnav{height:56px;background:var(--white);border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;z-index:100;position:relative}
+.tn-left{display:flex;align-items:center;gap:12px}
+.back-btn{display:flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);transition:color .2s;padding:6px 0}
+.back-btn:hover{color:var(--ink-700)}
+.tn-sep{width:1px;height:18px;background:var(--rule-mid)}
+.tn-logo{display:flex;align-items:center;gap:8px}
+.tn-logo svg{width:24px;height:24px}
+.tn-name{font-family:var(--display);font-size:15px;font-weight:300;color:var(--ink-900);letter-spacing:-.1px}
+.tn-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300);background:var(--canvas);border:1px solid var(--rule);border-radius:100px;padding:3px 10px}
+.tn-right{display:flex;align-items:center;gap:10px}
+.tn-streak{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--amber);background:var(--amber-lt);border:1px solid rgba(155,107,26,.15);border-radius:100px;padding:5px 12px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--slate-lt);border:1px solid rgba(59,90,138,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--slate)}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;position:relative;z-index:1}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--white);border-right:1px solid var(--rule);display:flex;flex-direction:column;overflow-y:auto}
+.sb-section{padding:20px 16px 8px;font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-300)}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-500);text-decoration:none;transition:background .15s,color .15s;border-left:2px solid transparent}
+.sb-link:hover{background:var(--canvas);color:var(--ink-900)}
+.sb-link.active{background:var(--slate-lt);color:var(--slate);border-left-color:var(--slate)}
+.sb-icon{width:18px;height:18px;flex-shrink:0;opacity:.55}
+.sb-link.active .sb-icon{opacity:1}
+.sb-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--rule)}
+.sb-checkin-btn{width:100%;background:var(--slate);color:var(--white);border:none;border-radius:100px;padding:10px;font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.sb-checkin-btn:hover{opacity:.88}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;background:var(--canvas)}
+.page{display:none;padding:28px 32px;max-width:1100px}
+.page.active{display:block}
+.page-title{font-family:var(--display);font-size:28px;font-weight:200;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:4px}
+.page-sub{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-300);margin-bottom:28px}
+
+/* ── GRIDS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--rule);border-radius:16px;padding:20px}
+.card-sm{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:16px}
+.card-label{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-300);margin-bottom:12px}
+.card-val{font-family:var(--display);font-size:36px;font-weight:200;letter-spacing:-.03em;line-height:1}
+.card-unit{font-size:13px;opacity:.45;font-family:var(--body);font-weight:300;margin-left:2px}
+.card-delta{font-family:var(--mono);font-size:10px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.d-up{color:var(--sage)}.d-down{color:var(--red)}.d-neu{color:var(--ink-300)}
+
+/* ── SCORE RING ── */
+.score-ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0}
+.score-ring-val{font-family:var(--display);font-size:48px;font-weight:200;letter-spacing:-.04em;line-height:1;margin-top:-108px;position:relative;z-index:1}
+.score-ring-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-300);margin-top:4px;position:relative;z-index:1}
+
+/* ── WELLNESS GRAPH ── */
+.graph-wrap{position:relative;width:100%;height:160px;margin-top:8px}
+.graph-wrap canvas{width:100%;height:100%}
+.graph-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:6px;letter-spacing:.04em}
+
+/* ── QUESTIONNAIRE ── */
+.q-overlay{position:fixed;inset:0;z-index:400;background:rgba(28,27,24,.4);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+.q-overlay.open{display:flex}
+.q-box{background:var(--white);border-radius:28px;padding:40px;max-width:540px;width:100%;box-shadow:var(--sh-lg);animation:popIn .4s var(--ease);max-height:90vh;overflow-y:auto}
+@keyframes popIn{from{transform:scale(.92) translateY(18px);opacity:0}to{transform:none;opacity:1}}
+.q-progress-bar{height:3px;background:var(--canvas2);border-radius:100px;margin-bottom:32px;overflow:hidden}
+.q-progress-fill{height:100%;background:var(--slate);border-radius:100px;transition:width .4s var(--ease)}
+.q-section-title{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:8px}
+.q-question{font-family:var(--display);font-size:20px;font-weight:300;letter-spacing:-.01em;color:var(--ink-900);line-height:1.25;margin-bottom:24px}
+.q-options{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+.q-option{
+  display:flex;align-items:center;gap:14px;padding:13px 16px;
+  background:var(--canvas);border:1px solid var(--rule);border-radius:12px;
+  cursor:pointer;transition:border-color .2s,background .2s;
+}
+.q-option:hover{border-color:var(--slate);background:var(--slate-lt)}
+.q-option.selected{border-color:var(--slate);background:var(--slate-lt)}
+.q-option-score{font-family:var(--mono);font-size:10px;color:var(--ink-300);min-width:16px}
+.q-option-label{font-size:13px;font-weight:500;color:var(--ink-700)}
+.q-option.selected .q-option-label{color:var(--slate)}
+.q-nav{display:flex;gap:10px;justify-content:space-between;align-items:center}
+.q-btn-next{background:var(--slate);color:var(--white);border:none;border-radius:100px;padding:11px 28px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s}
+.q-btn-next:hover{opacity:.85}
+.q-btn-back{background:transparent;color:var(--ink-500);border:1px solid var(--rule-mid);border-radius:100px;padding:11px 20px;font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;transition:border-color .2s}
+.q-btn-back:hover{border-color:var(--ink-300)}
+.q-counter{font-family:var(--mono);font-size:10px;color:var(--ink-300)}
+
+/* ── RESULTS ── */
+.result-score-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.result-badge{flex:1;min-width:120px;text-align:center;padding:18px 12px;border-radius:14px;border:1px solid var(--rule)}
+.result-badge-val{font-family:var(--display);font-size:30px;font-weight:200;letter-spacing:-.03em;line-height:1;margin-bottom:4px}
+.result-badge-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-300)}
+.result-protocol{background:linear-gradient(135deg,var(--slate-lt),var(--white));border:1px solid rgba(59,90,138,.15);border-radius:16px;padding:22px;margin-bottom:12px}
+.result-protocol-title{font-size:13px;font-weight:600;color:var(--slate);margin-bottom:8px}
+.result-protocol-body{font-size:13px;color:var(--ink-700);line-height:1.7}
+
+/* ── BIOMARKER CARDS ── */
+.bio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:14px}
+.bio-card{background:var(--white);border:1px solid var(--rule);border-radius:14px;padding:18px 16px}
+.bio-icon{font-size:22px;margin-bottom:10px;display:block}
+.bio-val{font-family:var(--display);font-size:28px;font-weight:200;letter-spacing:-.03em;line-height:1;margin-bottom:3px}
+.bio-unit{font-size:11px;opacity:.45;font-family:var(--body)}
+.bio-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-300);margin-bottom:6px}
+.bio-bar{height:4px;background:var(--panel);border-radius:100px;overflow:hidden}
+.bio-fill{height:100%;border-radius:100px}
+
+/* ── BREATHING PROTOCOL ── */
+.breath-card{background:linear-gradient(135deg,var(--sage-pale),var(--white));border:1px solid rgba(61,122,95,.15);border-radius:20px;padding:28px}
+.breath-title{font-family:var(--display);font-size:22px;font-weight:300;letter-spacing:-.02em;color:var(--ink-900);margin-bottom:6px}
+.breath-sub{font-size:13px;color:var(--ink-500);margin-bottom:20px;line-height:1.6}
+.breath-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.breath-step{display:flex;gap:12px;align-items:flex-start;background:var(--white);border:1px solid var(--rule);border-radius:10px;padding:12px 14px}
+.breath-num{width:24px;height:24px;border-radius:50%;background:var(--sage-light);color:var(--sage);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.breath-step-title{font-size:12px;font-weight:600;color:var(--ink-900);margin-bottom:2px}
+.breath-step-body{font-size:12px;color:var(--ink-500)}
+.breath-btn{background:var(--sage);color:var(--white);border:none;border-radius:100px;padding:11px 24px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;display:inline-flex;align-items:center;gap:8px}
+.breath-btn:hover{opacity:.88;transform:translateY(-1px)}
+
+/* ── STREAK CALENDAR ── */
+.streak-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.streak-day{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--ink-300)}
+.streak-done{background:var(--sage);color:var(--white)}
+.streak-today{background:var(--slate-lt);border:1.5px solid var(--slate);color:var(--slate);font-weight:600}
+.streak-miss{background:var(--canvas2);color:var(--ink-100)}
+
+/* ── HISTORY TABLE ── */
+.history-row{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule)}
+.history-row:last-child{border-bottom:none}
+.history-date{font-family:var(--mono);font-size:10px;color:var(--ink-300);min-width:80px;letter-spacing:.04em}
+.history-scores{display:flex;gap:8px;flex:1;flex-wrap:wrap}
+.history-pill{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:100px}
+.hp-green{background:var(--sage-light);color:var(--sage)}
+.hp-amber{background:var(--amber-lt);color:var(--amber)}
+.hp-red{background:var(--red-lt);color:var(--red)}
+.hp-blue{background:var(--slate-lt);color:var(--slate)}
+.history-protocol{font-size:12px;color:var(--ink-300);margin-left:auto;font-style:italic}
+
+/* ── CRISIS PANEL ── */
+.crisis-card{background:linear-gradient(135deg,#FBF4E6,var(--white));border:1px solid rgba(155,107,26,.18);border-radius:16px;padding:22px;margin-bottom:14px}
+.crisis-title{font-size:14px;font-weight:600;color:var(--amber);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.crisis-body{font-size:13px;color:var(--ink-700);line-height:1.7;margin-bottom:14px}
+.resource-row{display:flex;gap:10px;flex-wrap:wrap}
+.resource-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1px solid var(--rule);background:var(--white);font-size:12px;font-weight:500;color:var(--ink-700);text-decoration:none;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.resource-btn:hover{border-color:var(--rule-mid);box-shadow:var(--sh-sm)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--ink-900);color:var(--white);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh-lg);max-width:320px;transform:translateY(80px);opacity:0;transition:transform .4s var(--ease),opacity .4s}
+.toast.show{transform:translateY(0);opacity:1}
+.t-icon{font-size:18px;flex-shrink:0}
+.t-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.t-body{font-size:11px;color:rgba(255,255,255,.6)}
+
+@media(max-width:768px){.sidebar{display:none}.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- TOPNAV -->
+<div class="topnav">
+  <div class="tn-left">
+    <a href="index.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Dhyanly Suite
+    </a>
+    <div class="tn-sep"></div>
+    <div class="tn-logo">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 3C9.2 3 7 5.2 7 8c0 2 1 3.7 2.5 4.7L12 21l2.5-8.3C16 11.7 17 10 17 8c0-2.8-2.2-5-5-5Z" stroke="#3B5A8A" stroke-width="1.4" stroke-linejoin="round"/>
+        <circle cx="12" cy="8" r="2" stroke="#3B5A8A" stroke-width="1.3"/>
+      </svg>
+    </div>
+    <span class="tn-name">DhyanlyApp</span>
+    <span class="tn-tag">Mental Health Monitor</span>
+  </div>
+  <div class="tn-right">
+    <div class="tn-streak">🔥 12-day streak</div>
+    <div class="avatar">ST</div>
+  </div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">Overview</div>
+    <a class="sb-link active" onclick="showPage('dashboard',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      Dashboard
+    </a>
+    <a class="sb-link" onclick="showPage('trends',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><polyline points="2,14 6,8 10,11 14,4 16,6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Wellness Trends
+    </a>
+    <div class="sb-section">Wellbeing</div>
+    <a class="sb-link" onclick="showPage('biomarkers',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4 4l1.4 1.4M12.6 12.6l1.4 1.4M4 14l1.4-1.4M12.6 5.4l1.4-1.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="9" cy="9" r="3" stroke="currentColor" stroke-width="1.3"/></svg>
+      Biomarkers
+    </a>
+    <a class="sb-link" onclick="showPage('protocol',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><path d="M9 2C5.7 2 3 4.7 3 8c0 2 1 3.7 2.5 4.7L9 17l3.5-4.3C14 11.7 15 10 15 8c0-3.3-2.7-6-6-6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      Breathing Protocol
+    </a>
+    <a class="sb-link" onclick="showPage('streak',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6 2v4M12 2v4M2 8h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Streak & History
+    </a>
+    <div class="sb-section">Support</div>
+    <a class="sb-link" onclick="showPage('crisis',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M9 5.5v4M9 12v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Support & Resources
+    </a>
+    <div class="sb-bottom">
+      <button class="sb-checkin-btn" onclick="openCheckin()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v5l3 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/></svg>
+        Weekly Check-In
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ══════ DASHBOARD ══════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Your Wellbeing</div>
+      <div class="page-sub">Week of April 14–18, 2026 · Next check-in due Sunday</div>
+
+      <!-- Overall score ring + KPIs -->
+      <div class="grid-2" style="margin-bottom:14px;align-items:start">
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px">
+          <div class="card-label" style="align-self:flex-start">Overall Wellness Score</div>
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#EEECEA" stroke-width="14"/>
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#3B5A8A" stroke-width="14"
+              stroke-dasharray="307" stroke-dashoffset="75"
+              stroke-linecap="round" transform="rotate(-90 80 80)"/>
+          </svg>
+          <div style="margin-top:-110px;position:relative;z-index:1;text-align:center">
+            <div style="font-family:var(--display);font-size:48px;font-weight:200;letter-spacing:-.04em;color:var(--slate)">75</div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-300);margin-top:4px">/ 100</div>
+          </div>
+          <div style="margin-top:24px;text-align:center">
+            <div style="font-size:13px;font-weight:600;color:var(--slate)">Moderate · Improving</div>
+            <div style="font-size:12px;color:var(--ink-500);margin-top:3px">↑ +8 points from last week</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="grid-2">
+            <div class="card-sm">
+              <div class="card-label">Anxiety (GAD-2)</div>
+              <div class="card-val" style="color:var(--amber)">4<span class="card-unit">/6</span></div>
+              <div class="card-delta d-down">Mild anxiety</div>
+            </div>
+            <div class="card-sm">
+              <div class="card-label">Depression (PHQ-2)</div>
+              <div class="card-val" style="color:var(--sage)">2<span class="card-unit">/6</span></div>
+              <div class="card-delta d-up">Minimal</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card-sm">
+              <div class="card-label">Stress (PSS)</div>
+              <div class="card-val" style="color:var(--amber)">16<span class="card-unit">/40</span></div>
+              <div class="card-delta d-up">↓ Low-moderate</div>
+            </div>
+            <div class="card-sm">
+              <div class="card-label">HRV Score</div>
+              <div class="card-val" style="color:var(--sage)">68<span class="card-unit">ms</span></div>
+              <div class="card-delta d-up">↑ Good recovery</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly graph preview -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label">Wellness Score — Last 8 Weeks</div>
+        <canvas id="dashGraph" height="90" style="width:100%;display:block;margin-top:4px"></canvas>
+        <div class="graph-labels" id="dashGraphLabels"></div>
+      </div>
+
+      <!-- AI prescription -->
+      <div class="breath-card">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);margin-bottom:8px">AI-Prescribed Protocol · This Week</div>
+        <div class="breath-title">Chandra Bhedana</div>
+        <div class="breath-sub">Based on your GAD-2 score of 4 and elevated stress biomarkers, your AI protocol recommends left-nostril dominant breathing to activate parasympathetic tone and reduce anxiety signals.</div>
+        <button class="breath-btn" onclick="showPage('protocol',document.querySelector('[onclick*=protocol]'))">
+          Start Today's Practice
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════ WELLNESS TRENDS ══════ -->
+    <div class="page" id="page-trends">
+      <div class="page-title">Wellness Trends</div>
+      <div class="page-sub">Longitudinal view · 8 weeks</div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label">Overall Wellness Score</div>
+        <canvas id="trendGraph" height="120" style="width:100%;display:block;margin-top:4px"></canvas>
+        <div class="graph-labels" id="trendLabels"></div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-label">Anxiety (GAD-2)</div>
+          <canvas id="gadGraph" height="70" style="width:100%;display:block;margin-top:4px"></canvas>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:6px">8-week trend · lower is better</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Depression (PHQ-2)</div>
+          <canvas id="phqGraph" height="70" style="width:100%;display:block;margin-top:4px"></canvas>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:6px">8-week trend · lower is better</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Perceived Stress (PSS)</div>
+          <canvas id="pssGraph" height="70" style="width:100%;display:block;margin-top:4px"></canvas>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:6px">8-week trend · lower is better</div>
+        </div>
+      </div>
+
+      <!-- Insight -->
+      <div style="background:var(--slate-lt);border:1px solid rgba(59,90,138,.15);border-radius:14px;padding:20px;display:flex;gap:14px;align-items:flex-start">
+        <div style="width:38px;height:38px;border-radius:10px;background:white;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📈</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--slate);margin-bottom:5px">Trend Insight</div>
+          <div style="font-size:13px;color:var(--ink-700);line-height:1.65">Your anxiety scores have decreased by 33% over 8 weeks, correlating strongly with your consistent Chandra Bhedana practice. PHQ-2 scores remain stable and low. Continue your current protocol — the data supports it.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ BIOMARKERS ══════ -->
+    <div class="page" id="page-biomarkers">
+      <div class="page-title">Biomarkers</div>
+      <div class="page-sub">Physical health data · Updated today</div>
+
+      <div class="bio-grid">
+        <div class="bio-card">
+          <span class="bio-icon">💓</span>
+          <div class="bio-lbl">HRV (RMSSD)</div>
+          <div class="bio-val" style="color:var(--sage)">68<span class="bio-unit"> ms</span></div>
+          <div class="bio-bar" style="margin-top:8px"><div class="bio-fill" style="width:68%;background:var(--sage)"></div></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:5px">↑ +4ms this week</div>
+        </div>
+        <div class="bio-card">
+          <span class="bio-icon">😴</span>
+          <div class="bio-lbl">Sleep Duration</div>
+          <div class="bio-val" style="color:var(--slate)">6.8<span class="bio-unit"> hrs</span></div>
+          <div class="bio-bar" style="margin-top:8px"><div class="bio-fill" style="width:75%;background:var(--slate)"></div></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:5px">Near optimal range</div>
+        </div>
+        <div class="bio-card">
+          <span class="bio-icon">🚶</span>
+          <div class="bio-lbl">Daily Steps</div>
+          <div class="bio-val" style="color:var(--amber)">6.2k<span class="bio-unit"></span></div>
+          <div class="bio-bar" style="margin-top:8px"><div class="bio-fill" style="width:62%;background:var(--amber)"></div></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:5px">Below 10k target</div>
+        </div>
+        <div class="bio-card">
+          <span class="bio-icon">🧠</span>
+          <div class="bio-lbl">Breath Rate</div>
+          <div class="bio-val" style="color:var(--sage)">14<span class="bio-unit"> /min</span></div>
+          <div class="bio-bar" style="margin-top:8px"><div class="bio-fill" style="width:72%;background:var(--sage)"></div></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:5px">Within normal range</div>
+        </div>
+        <div class="bio-card">
+          <span class="bio-icon">🌡️</span>
+          <div class="bio-lbl">Resting Heart Rate</div>
+          <div class="bio-val" style="color:var(--sage)">64<span class="bio-unit"> bpm</span></div>
+          <div class="bio-bar" style="margin-top:8px"><div class="bio-fill" style="width:78%;background:var(--sage)"></div></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:5px">Good cardiac health</div>
+        </div>
+        <div class="bio-card">
+          <span class="bio-icon">🌬️</span>
+          <div class="bio-lbl">Svara Dominance</div>
+          <div class="bio-val" style="color:var(--plum)">Left<span class="bio-unit"> nadi</span></div>
+          <div class="bio-bar" style="margin-top:8px"><div class="bio-fill" style="width:60%;background:var(--plum)"></div></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);margin-top:5px">Parasympathetic active</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Biomarker Correlation with Anxiety Score</div>
+        <canvas id="bioGraph" height="100" style="width:100%;display:block;margin-top:4px"></canvas>
+        <div class="graph-labels" id="bioGraphLabels"></div>
+      </div>
+    </div>
+
+    <!-- ══════ BREATHING PROTOCOL ══════ -->
+    <div class="page" id="page-protocol">
+      <div class="page-title">Breathing Protocol</div>
+      <div class="page-sub">AI-prescribed · personalised to your scores</div>
+
+      <div class="grid-2" style="align-items:start;gap:14px">
+        <div>
+          <div class="breath-card" style="margin-bottom:14px">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);margin-bottom:8px">Prescribed For: GAD-2 ≥ 3 · Anxiety</div>
+            <div class="breath-title">Chandra Bhedana</div>
+            <div class="breath-sub">Left nostril breathing activates the parasympathetic nervous system, reduces cortisol, and lowers anxiety markers. Practice daily for 5–10 minutes, ideally in the morning before screens.</div>
+            <div class="breath-steps">
+              <div class="breath-step"><div class="breath-num">1</div><div><div class="breath-step-title">Prepare</div><div class="breath-step-body">Sit comfortably with your spine upright. Rest your right hand on your right knee. Bring your right thumb to close the right nostril.</div></div></div>
+              <div class="breath-step"><div class="breath-num">2</div><div><div class="breath-step-title">Inhale Left — 4 counts</div><div class="breath-step-body">Breathe slowly and deeply through your left nostril only. Keep the right nostril gently closed throughout.</div></div></div>
+              <div class="breath-step"><div class="breath-num">3</div><div><div class="breath-step-title">Hold — 4 counts</div><div class="breath-step-body">Close both nostrils gently. Hold the breath without strain. Keep the body relaxed.</div></div></div>
+              <div class="breath-step"><div class="breath-num">4</div><div><div class="breath-step-title">Exhale Right — 8 counts</div><div class="breath-step-body">Release the right nostril and exhale slowly and completely. The exhale should be twice as long as the inhale.</div></div></div>
+              <div class="breath-step"><div class="breath-num">5</div><div><div class="breath-step-title">Repeat × 10 rounds</div><div class="breath-step-body">Continue for 5–10 minutes. After completion, sit quietly for 1 minute and observe the stillness.</div></div></div>
+            </div>
+            <button class="breath-btn" onclick="startTimer()">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="4,2 12,7 4,12" fill="currentColor"/></svg>
+              Start Guided Practice
+            </button>
+          </div>
+
+          <!-- Timer -->
+          <div class="card" id="timerCard" style="display:none;text-align:center;padding:28px">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);margin-bottom:12px" id="timerPhase">Inhale — Left Nostril</div>
+            <div style="font-family:var(--display);font-size:64px;font-weight:200;letter-spacing:-.04em;color:var(--slate);line-height:1;margin-bottom:8px" id="timerCount">4</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--ink-300);margin-bottom:20px" id="timerRound">Round 1 of 10</div>
+            <div style="height:4px;background:var(--panel);border-radius:100px;overflow:hidden;margin-bottom:20px"><div id="timerBar" style="height:100%;border-radius:100px;background:var(--slate);transition:width 1s linear;width:100%"></div></div>
+            <button onclick="stopTimer()" style="background:transparent;border:1px solid var(--rule-mid);border-radius:100px;padding:9px 20px;font-family:var(--body);font-size:12px;color:var(--ink-500);cursor:pointer">End Session</button>
+          </div>
+        </div>
+
+        <!-- Secondary options -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-label">Also Recommended</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+              <div onclick="showToast('🌬️','Protocol Selected','Nadi Shodhana — 5 min daily added.')" style="display:flex;gap:12px;align-items:center;padding:12px;background:var(--canvas);border:1px solid var(--rule);border-radius:12px;cursor:pointer;transition:background .2s" onmouseover="this.style.background='var(--canvas2)'" onmouseout="this.style.background='var(--canvas)'">
+                <span style="font-size:20px">🌬️</span>
+                <div><div style="font-size:13px;font-weight:600;color:var(--ink-900)">Nadi Shodhana</div><div style="font-size:12px;color:var(--ink-500)">For stress (PSS &gt; 14) · 5 min</div></div>
+                <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--ink-300)">ADD →</span>
+              </div>
+              <div onclick="showToast('🧘','Protocol Selected','Box Breathing — 4 min added.')" style="display:flex;gap:12px;align-items:center;padding:12px;background:var(--canvas);border:1px solid var(--rule);border-radius:12px;cursor:pointer;transition:background .2s" onmouseover="this.style.background='var(--canvas2)'" onmouseout="this.style.background='var(--canvas)'">
+                <span style="font-size:20px">📦</span>
+                <div><div style="font-size:13px;font-weight:600;color:var(--ink-900)">Box Breathing</div><div style="font-size:12px;color:var(--ink-500)">4-4-4-4 for acute stress · 4 min</div></div>
+                <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--ink-300)">ADD →</span>
+              </div>
+              <div onclick="showToast('🌙','Protocol Selected','4-7-8 Breathing — night practice added.')" style="display:flex;gap:12px;align-items:center;padding:12px;background:var(--canvas);border:1px solid var(--rule);border-radius:12px;cursor:pointer;transition:background .2s" onmouseover="this.style.background='var(--canvas2)'" onmouseout="this.style.background='var(--canvas)'">
+                <span style="font-size:20px">🌙</span>
+                <div><div style="font-size:13px;font-weight:600;color:var(--ink-900)">4-7-8 Breathing</div><div style="font-size:12px;color:var(--ink-500)">For sleep onset · night practice</div></div>
+                <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--ink-300)">ADD →</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-sm" style="background:var(--sage-pale);border-color:rgba(61,122,95,.15)">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);margin-bottom:6px">Why this protocol?</div>
+            <div style="font-size:12px;color:var(--ink-700);line-height:1.65">Your GAD-2 score of 4 indicates mild anxiety. Chandra Bhedana activates the parasympathetic system via the left olfactory pathway and vagal nerve. Clinical studies show significant HRV improvement after 4 weeks of consistent practice.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ STREAK & HISTORY ══════ -->
+    <div class="page" id="page-streak">
+      <div class="page-title">Streak & History</div>
+      <div class="page-sub">Check-in consistency · April 2026</div>
+
+      <!-- Streak summary -->
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="card-sm" style="text-align:center">
+          <div class="card-label">Current Streak</div>
+          <div style="font-family:var(--display);font-size:42px;font-weight:200;color:var(--amber)">12🔥</div>
+          <div style="font-size:12px;color:var(--ink-500);margin-top:4px">days consecutive</div>
+        </div>
+        <div class="card-sm" style="text-align:center">
+          <div class="card-label">Longest Streak</div>
+          <div style="font-family:var(--display);font-size:42px;font-weight:200;color:var(--sage)">21</div>
+          <div style="font-size:12px;color:var(--ink-500);margin-top:4px">days — Feb 2026</div>
+        </div>
+        <div class="card-sm" style="text-align:center">
+          <div class="card-label">Check-ins This Month</div>
+          <div style="font-family:var(--display);font-size:42px;font-weight:200;color:var(--slate)">14</div>
+          <div style="font-size:12px;color:var(--ink-500);margin-top:4px">of 18 days</div>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label">April 2026</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);text-align:center">M</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);text-align:center">T</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);text-align:center">W</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);text-align:center">T</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);text-align:center">F</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);text-align:center">S</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-300);text-align:center">S</div>
+        </div>
+        <div class="streak-grid" id="calendarGrid"></div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:3px;background:var(--sage);display:inline-block"></span>Check-in done</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:3px;background:var(--canvas2);border:1px solid var(--rule);display:inline-block"></span>Missed</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-500)"><span style="width:10px;height:10px;border-radius:3px;background:var(--slate-lt);border:1.5px solid var(--slate);display:inline-block"></span>Today</span>
+        </div>
+      </div>
+
+      <!-- History table -->
+      <div class="card">
+        <div class="card-label">Check-in History</div>
+        <div id="historyTable"></div>
+      </div>
+    </div>
+
+    <!-- ══════ CRISIS / SUPPORT ══════ -->
+    <div class="page" id="page-crisis">
+      <div class="page-title">Support & Resources</div>
+      <div class="page-sub">You are not alone. Help is always available.</div>
+
+      <div class="crisis-card">
+        <div class="crisis-title">⚠ Feeling overwhelmed right now?</div>
+        <div class="crisis-body">If you are experiencing a mental health crisis, please reach out immediately. These resources are free, confidential, and available 24/7. Speaking to a professional is always the right choice.</div>
+        <div class="resource-row">
+          <a class="resource-btn" href="tel:+911800599019"><span>📞</span>iCall — 9152987821</a>
+          <a class="resource-btn" href="tel:+911800599019"><span>📞</span>Vandrevala — 1860-2662-345</a>
+          <a class="resource-btn" href="https://icallhelpline.org" target="_blank"><span>🌐</span>iCall Online</a>
+          <a class="resource-btn" href="tel:022-25521111"><span>🏥</span>NIMHANS — 080-46110007</a>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-label">Immediate Grounding Practice</div>
+          <div style="font-family:var(--display);font-size:17px;font-weight:300;color:var(--ink-900);margin-bottom:12px;letter-spacing:-.01em">5-4-3-2-1 Technique</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:10px;font-size:13px;color:var(--ink-700)"><span style="font-family:var(--mono);font-size:12px;color:var(--slate);min-width:20px">5</span>things you can <strong>see</strong> right now</div>
+            <div style="display:flex;gap:10px;font-size:13px;color:var(--ink-700)"><span style="font-family:var(--mono);font-size:12px;color:var(--slate);min-width:20px">4</span>things you can <strong>touch</strong></div>
+            <div style="display:flex;gap:10px;font-size:13px;color:var(--ink-700)"><span style="font-family:var(--mono);font-size:12px;color:var(--slate);min-width:20px">3</span>things you can <strong>hear</strong></div>
+            <div style="display:flex;gap:10px;font-size:13px;color:var(--ink-700)"><span style="font-family:var(--mono);font-size:12px;color:var(--slate);min-width:20px">2</span>things you can <strong>smell</strong></div>
+            <div style="display:flex;gap:10px;font-size:13px;color:var(--ink-700)"><span style="font-family:var(--mono);font-size:12px;color:var(--slate);min-width:20px">1</span>slow, deep <strong>breath</strong></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">General Wellbeing Resources</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+            <a href="https://icallhelpline.org" target="_blank" class="resource-btn" style="border-color:var(--rule)"><span>🧠</span>iCall — Tata Institute</a>
+            <a href="https://www.nimhans.ac.in" target="_blank" class="resource-btn" style="border-color:var(--rule)"><span>🏛️</span>NIMHANS Bangalore</a>
+            <a href="https://mannsamman.mohfw.gov.in" target="_blank" class="resource-btn" style="border-color:var(--rule)"><span>🇮🇳</span>Mann Samman — Govt India</a>
+            <a href="https://www.liveloudindia.com" target="_blank" class="resource-btn" style="border-color:var(--rule)"><span>💬</span>Live Loud India</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .main -->
+</div><!-- end .app-body -->
+
+<!-- ══════ CHECK-IN MODAL ══════ -->
+<div class="q-overlay" id="qOverlay">
+  <div class="q-box">
+    <div class="q-progress-bar"><div class="q-progress-fill" id="qProgress" style="width:0%"></div></div>
+    <div class="q-section-title" id="qSection">GAD-2 · Anxiety</div>
+    <div class="q-question" id="qQuestion"></div>
+    <div class="q-options" id="qOptions"></div>
+    <div class="q-nav">
+      <button class="q-btn-back" id="qBack" onclick="qPrev()">← Back</button>
+      <span class="q-counter" id="qCounter">1 / 10</span>
+      <button class="q-btn-next" id="qNext" onclick="qNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="t-icon" id="tIcon">✓</span>
+  <div><div class="t-title" id="tTitle"></div><div class="t-body" id="tBody"></div></div>
+</div>
+
+<script>
+// ── PAGE NAV ──────────────────────────────────────────
+function showPage(id,link){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(link) link.classList.add('active');
+  if(id==='trends')   drawTrends();
+  if(id==='biomarkers') drawBio();
+}
+
+// ── TOAST ─────────────────────────────────────────────
+let toastT;
+function showToast(icon,title,body){
+  clearTimeout(toastT);
+  document.getElementById('tIcon').textContent=icon;
+  document.getElementById('tTitle').textContent=title;
+  document.getElementById('tBody').textContent=body;
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  toastT=setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ── CANVAS DRAWING HELPERS ───────────────────────────
+function drawLine(canvasId, data, color, min, max, labels){
+  const c=document.getElementById(canvasId);
+  if(!c) return;
+  c.width=c.offsetWidth*window.devicePixelRatio||c.parentElement.offsetWidth*2;
+  c.height=c.getAttribute('height')*2;
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height, pad=20;
+  ctx.clearRect(0,0,W,H);
+  const range=max-min||1;
+  // grid lines
+  ctx.strokeStyle='rgba(28,27,24,.06)'; ctx.lineWidth=1;
+  [0,.25,.5,.75,1].forEach(t=>{ const y=pad+(1-t)*(H-pad*2); ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke(); });
+  // area fill
+  ctx.beginPath();
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-(v-min)/range)*(H-pad*2); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(pad+(data.length-1)*(W-pad*2)/(data.length-1),H-pad);
+  ctx.lineTo(pad,H-pad);ctx.closePath();
+  ctx.fillStyle=color+'22'; ctx.fill();
+  // line
+  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.lineJoin='round';ctx.lineCap='round';
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-(v-min)/range)*(H-pad*2); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  // dots
+  data.forEach((v,i)=>{ const x=pad+i*(W-pad*2)/(data.length-1),y=pad+(1-(v-min)/range)*(H-pad*2); ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='#FDFCFA';ctx.fill(); });
+  // labels
+  if(labels){
+    const lbl=document.getElementById(labels);
+    if(lbl){ lbl.innerHTML=''; data.forEach((_,i)=>{ const s=document.createElement('span');s.textContent=['Wk 1','Wk 2','Wk 3','Wk 4','Wk 5','Wk 6','Wk 7','Wk 8'][i]||''; lbl.appendChild(s); }); }
+  }
+}
+
+// Dashboard graph
+const wellnessData=[52,58,61,65,60,68,72,75];
+setTimeout(()=>{ drawLine('dashGraph',wellnessData,'#3B5A8A',40,100,'dashGraphLabels'); },100);
+
+function drawTrends(){
+  setTimeout(()=>{
+    drawLine('trendGraph',wellnessData,'#3B5A8A',40,100,'trendLabels');
+    drawLine('gadGraph',[6,5,5,4,5,4,4,4],'#9B6B1A',0,6,'');
+    drawLine('phqGraph',[3,3,2,2,3,2,2,2],'#8B2E2E',0,6,'');
+    drawLine('pssGraph',[24,22,20,19,18,17,16,16],'#6B3D7A',0,40,'');
+  },50);
+}
+function drawBio(){
+  setTimeout(()=>{ drawLine('bioGraph',[68,65,62,60,64,66,68,68],'#3D7A5F',50,90,'bioGraphLabels'); },50);
+}
+
+// ── CALENDAR ─────────────────────────────────────────
+(function buildCalendar(){
+  const grid=document.getElementById('calendarGrid');
+  if(!grid) return;
+  // April 2026 starts on Wednesday (offset 2)
+  const done=[1,2,3,4,5,6,7,8,9,10,12,13,14,15,17,18];
+  for(let i=0;i<2;i++){ const d=document.createElement('div');d.className='streak-day';grid.appendChild(d); }
+  for(let d=1;d<=30;d++){
+    const el=document.createElement('div');
+    if(d===18) el.className='streak-day streak-today';
+    else if(done.includes(d)) el.className='streak-day streak-done';
+    else if(d<18) el.className='streak-day streak-miss';
+    else el.className='streak-day';
+    el.textContent=d;
+    grid.appendChild(el);
+  }
+})();
+
+// ── HISTORY TABLE ─────────────────────────────────────
+(function buildHistory(){
+  const t=document.getElementById('historyTable');
+  if(!t) return;
+  const rows=[
+    {date:'Apr 18',gad:4,phq:2,pss:16,protocol:'Chandra Bhedana'},
+    {date:'Apr 14',gad:4,phq:2,pss:17,protocol:'Chandra Bhedana'},
+    {date:'Apr 07',gad:5,phq:2,pss:18,protocol:'Nadi Shodhana'},
+    {date:'Mar 31',gad:5,phq:3,pss:20,protocol:'Nadi Shodhana'},
+    {date:'Mar 24',gad:5,phq:3,pss:21,protocol:'Box Breathing'},
+    {date:'Mar 17',gad:6,phq:3,pss:22,protocol:'Box Breathing'},
+  ];
+  rows.forEach(r=>{
+    const row=document.createElement('div');
+    row.className='history-row';
+    const gc=r.gad<=2?'hp-green':r.gad<=4?'hp-amber':'hp-red';
+    const pc=r.phq<=1?'hp-green':r.phq<=3?'hp-amber':'hp-red';
+    const sc=r.pss<=13?'hp-green':r.pss<=26?'hp-amber':'hp-red';
+    row.innerHTML=`<div class="history-date">${r.date}</div>
+      <div class="history-scores">
+        <span class="history-pill ${gc}">GAD ${r.gad}</span>
+        <span class="history-pill ${pc}">PHQ ${r.phq}</span>
+        <span class="history-pill ${sc}">PSS ${r.pss}</span>
+      </div>
+      <div class="history-protocol">${r.protocol}</div>`;
+    t.appendChild(row);
+  });
+})();
+
+// ── CHECK-IN QUESTIONNAIRE ────────────────────────────
+const QUESTIONS=[
+  {section:'GAD-2 · Anxiety',q:'Feeling nervous, anxious, or on edge?',opts:['Not at all','Several days','More than half the days','Nearly every day']},
+  {section:'GAD-2 · Anxiety',q:'Not being able to stop or control worrying?',opts:['Not at all','Several days','More than half the days','Nearly every day']},
+  {section:'PHQ-2 · Depression',q:'Little interest or pleasure in doing things?',opts:['Not at all','Several days','More than half the days','Nearly every day']},
+  {section:'PHQ-2 · Depression',q:'Feeling down, depressed, or hopeless?',opts:['Not at all','Several days','More than half the days','Nearly every day']},
+  {section:'PSS · Stress',q:'How often have you felt that things were out of your control?',opts:['Never','Almost never','Sometimes','Fairly often','Very often']},
+  {section:'PSS · Stress',q:'How often have you felt difficulties piling up so high that you could not overcome them?',opts:['Never','Almost never','Sometimes','Fairly often','Very often']},
+  {section:'PSS · Stress',q:'How often have you been upset because of something that happened unexpectedly?',opts:['Never','Almost never','Sometimes','Fairly often','Very often']},
+  {section:'Sleep & Energy',q:'How would you rate your sleep quality this week?',opts:['Very poor','Poor','Fair','Good','Very good']},
+  {section:'Sleep & Energy',q:'How is your overall energy level today?',opts:['Very low','Low','Moderate','High','Very high']},
+  {section:'Practice',q:'How consistently did you do your breathing practice this week?',opts:['Not at all','1–2 days','3–4 days','5–6 days','Every day']},
+];
+let qIdx=0;const qAns=new Array(QUESTIONS.length).fill(-1);
+
+function openCheckin(){
+  qIdx=0; qAns.fill(-1);
+  renderQ();
+  document.getElementById('qOverlay').classList.add('open');
+}
+function renderQ(){
+  const q=QUESTIONS[qIdx];
+  document.getElementById('qSection').textContent=q.section;
+  document.getElementById('qQuestion').textContent=q.q;
+  document.getElementById('qProgress').style.width=((qIdx/QUESTIONS.length)*100)+'%';
+  document.getElementById('qCounter').textContent=(qIdx+1)+' / '+QUESTIONS.length;
+  document.getElementById('qBack').style.visibility=qIdx===0?'hidden':'visible';
+  document.getElementById('qNext').textContent=qIdx===QUESTIONS.length-1?'Submit ✓':'Next →';
+  const opts=document.getElementById('qOptions');
+  opts.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const div=document.createElement('div');
+    div.className='q-option'+(qAns[qIdx]===i?' selected':'');
+    div.innerHTML=`<span class="q-option-score">${i}</span><span class="q-option-label">${o}</span>`;
+    div.onclick=()=>{ qAns[qIdx]=i; renderQ(); };
+    opts.appendChild(div);
+  });
+}
+function qNext(){
+  if(qAns[qIdx]<0){ showToast('⚠','Please answer','Select an option to continue.'); return; }
+  if(qIdx===QUESTIONS.length-1){ submitCheckin(); return; }
+  qIdx++; renderQ();
+}
+function qPrev(){ if(qIdx>0){ qIdx--; renderQ(); } }
+function submitCheckin(){
+  document.getElementById('qOverlay').classList.remove('open');
+  document.getElementById('qProgress').style.width='100%';
+  showToast('✓','Check-in Complete','Your wellness scores have been updated. Protocol refreshed.');
+}
+
+// ── BREATHING TIMER ───────────────────────────────────
+const PHASES=[
+  {label:'Inhale — Left Nostril',dur:4,color:'var(--sage)'},
+  {label:'Hold — Both Nostrils',dur:4,color:'var(--slate)'},
+  {label:'Exhale — Right Nostril',dur:8,color:'var(--plum)'},
+];
+let timerPhase=0,timerRound=1,timerSec=0,timerInt;
+function startTimer(){
+  document.getElementById('timerCard').style.display='block';
+  timerPhase=0;timerRound=1;timerSec=PHASES[0].dur;
+  updateTimerDisplay();
+  clearInterval(timerInt);
+  timerInt=setInterval(tickTimer,1000);
+}
+function tickTimer(){
+  timerSec--;
+  if(timerSec<=0){
+    timerPhase=(timerPhase+1)%PHASES.length;
+    if(timerPhase===0) timerRound++;
+    if(timerRound>10){ stopTimer(); showToast('🌬️','Practice Complete','10 rounds done. Well done.'); return; }
+    timerSec=PHASES[timerPhase].dur;
+  }
+  updateTimerDisplay();
+}
+function updateTimerDisplay(){
+  const ph=PHASES[timerPhase];
+  document.getElementById('timerPhase').textContent=ph.label;
+  document.getElementById('timerPhase').style.color=ph.color.replace('var(','').replace(')','');
+  document.getElementById('timerCount').textContent=timerSec;
+  document.getElementById('timerRound').textContent='Round '+timerRound+' of 10';
+  document.getElementById('timerBar').style.width=(timerSec/ph.dur*100)+'%';
+  document.getElementById('timerBar').style.background=ph.color;
+}
+function stopTimer(){ clearInterval(timerInt); document.getElementById('timerCard').style.display='none'; }
+</script>
+</body>
+</html>
